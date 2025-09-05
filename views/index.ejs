@@ -1,0 +1,13 @@
+<%- include("partials/header.ejs") %>
+
+<% if (section === "home") { %>
+  <%- include("partials/home") %>
+<% } else if (section === "family") { %>
+  <%- include("partials/family") %>
+<% } else if (section === "bills") { %>
+  <%- include("partials/bills") %>
+<% } else { %>
+  <%- include("partials/home") %>
+<% } %>
+  
+<%- include("partials/footer.ejs") %>

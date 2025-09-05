@@ -1,0 +1,46 @@
+<section id="family">
+  <div class="title">
+    <h2 class="title-name">Entrate</h2>
+    <button class="new-spese plus-btn"></button>
+  </div>
+
+  <% entrys.forEach(item=> { %>
+    <div class="entrata">
+      <div class="icon-circle">
+        <img src="/images/family.svg" alt="" class="icon">
+      </div>
+      <div class="income-text">
+        <h2 class="expense-name">
+          <%= item.name %>
+        </h2>
+        <h2 class="expense-value">
+          <%= item.value.toFixed(2) %> €
+        </h2>
+      </div>
+    </div>
+    <% }) %>
+
+      <div class="line"></div>
+      <div class="entrata total entrata-bills">
+        <div class="income-text">
+          <h2 class="expense-name">TOTALE</h2>
+          <h2 class="expense-value">
+            <%= total.toFixed(2) %> €
+          </h2>
+        </div>
+      </div>
+      <!-- adding stuff -->
+      <div class="container-plus-btn hidden">
+        <div class="container">
+          <form action="/add-family" method="POST" class="form-family">
+            <label for="name">Nome</label>
+            <input type="text" name="name" placeholder="Scrive il nome" required>
+            <label for="value">Valore</label>
+            <input type="number" name="value" step="0.01" placeholder="Scrive il valore (€)" required>
+            <label for="date">Data Mensile</label>
+            <input type="date" name="date_created" required>
+            <button type="submit" class="submit-btn">Aggiungi</button>
+          </form>
+        </div>
+      </div>
+    </section>
