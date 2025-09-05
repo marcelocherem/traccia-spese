@@ -4,11 +4,16 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 
 dotenv.config();
+console.log("DATABASE_URL:", process.env.DATABASE_URL);
 
 const db = new pg.Client({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-});
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+  
+   
 
 const app = express();
 const port = 3000;
