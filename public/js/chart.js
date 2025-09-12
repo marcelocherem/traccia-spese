@@ -1,85 +1,121 @@
-
 document.addEventListener("DOMContentLoaded", () => {
-    // Set today's date in the input field (used on homepage)
-    const dateInput = document.querySelector("input[name='date_expense']");
-    if (dateInput) {
+    // Detecta qual seção está ativa
+    const sectionEl = document.querySelector("#home") || document.querySelector("#family") || document.querySelector("#bills");
+    if (!sectionEl) return;
+
+    const sectionId = sectionEl.id;
+    const selector = `#${sectionId}`;
+
+    // Preenche a data atual no campo de data (se existir e estiver vazio)
+    const dateInput = document.querySelector(`${selector} input[type="date"]`);
+    if (dateInput && !dateInput.value) {
         const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        dateInput.value = `${yyyy}-${mm}-${dd}`;
+        dateInput.value = today.toISOString().split("T")[0];
     }
 
-    // Handle "Add" form toggle
-    const addBtn = document.querySelector(".new-spese");
-    const addOuter = document.querySelector(".container-plus-btn");
-    const addInner = addOuter.querySelector(".container");
+    // Abrir/fechar formulário de adição
+    const addBtn = sectionEl.querySelector(".new-spese");
+    const addOuter = sectionEl.querySelector(".container-plus-btn");
+    const addInner = addOuter?.querySelector(".container");
 
-    addBtn.addEventListener("click", () => {
+    addBtn?.addEventListener("click", () => {
         addOuter.classList.toggle("hidden");
     });
 
-    // Handle "Edit" form open and populate
-    const editOuter = document.querySelector(".container-edit-btn");
-    const editInner = editOuter.querySelector(".container");
-    const editForm = document.getElementById("edit-bill-form");
+    // Abrir formulário de edição
+    const editOuter = document.querySelector(`${selector} .container-edit-btn`);
+    const editInner = editOuter?.querySelector(".container");
 
-    document.querySelectorAll(".edit-btn").forEach(button => {
+    // Seleciona o formulário correto de acordo com a seção
+    const editForm =
+        sectionId === "bills"
+            ? document.getElementById("edit-bill-form")
+            : sectionId === "family"
+                ? document.getElementById("edit-family-form")
+                : document.getElementById("edit-weekly-form");
+
+    document.querySelectorAll(`${selector} .edit-btn`).forEach(button => {
         button.addEventListener("click", (event) => {
-            event.stopPropagation(); // Prevent conflict with .entrata click
+            event.stopPropagation();
 
             const id = button.dataset.id;
             const name = button.dataset.name;
             const value = button.dataset.value;
-            const day = button.dataset.day;
 
-            editForm.action = `/edit-bill/${id}`;
+            if (!editForm) return;
+
+            // Define a rota de edição
+            editForm.action =
+                sectionId === "bills"
+                    ? `/edit-bill/${id}`
+                    : sectionId === "family"
+                        ? `/edit-family/${id}`
+                        : `/edit-weekly_expenses/${id}`;
+
+            // Preenche os campos do formulário
             document.getElementById("edit-name").value = name;
             document.getElementById("edit-value").value = value;
-            document.getElementById("edit-day").value = day;
 
-            editOuter.classList.remove("hidden");
+            if (sectionId === "bills") {
+                document.getElementById("edit-day").value = button.dataset.day;
+            } else {
+                const dateField =
+                    sectionId === "family"
+                        ? document.querySelector("#edit-family-form input[name='date_created']")
+                        : document.getElementById("edit-date");
+                if (dateField) dateField.value = button.dataset.date;
+            }
+
+            editOuter?.classList.remove("hidden");
         });
     });
 
-    // Show confirmation before deleting a bill
-    document.querySelectorAll(".delete-form").forEach(form => {
+    // Confirmação antes de deletar
+    document.querySelectorAll(`${selector} .delete-form`).forEach(form => {
         form.addEventListener("submit", (event) => {
-            const confirmed = confirm("Sei sicuro di voler eliminare questa spesa?");
-            if (!confirmed) {
-                event.preventDefault(); // Cancel form submission
+            const msg =
+                sectionId === "bills"
+                    ? "Sei sicuro di voler eliminare questa spesa?"
+                    : "Sei sicuro di voler eliminare questa entrata?";
+            if (!confirm(msg)) {
+                event.preventDefault();
             }
         });
     });
 
-    // Highlight clicked .entrata and show action buttons
-    const entratas = document.querySelectorAll(".entrata");
-
+    // Destacar entrada clicada
+    const entratas = document.querySelectorAll(`${selector} .entrata`);
     entratas.forEach(item => {
         item.addEventListener("click", () => {
-            entratas.forEach(el => el.classList.remove("active")); // Remove from others
-            item.classList.add("active"); // Add to clicked
+            entratas.forEach(el => el.classList.remove("active"));
+            item.classList.add("active");
         });
     });
 
-    // Close forms and remove highlights when clicking outside
+    // Fechar formulários e remover destaque ao clicar fora
     document.addEventListener("click", (event) => {
-        // Close "Add" form
-        const clickedInsideAdd = addInner.contains(event.target) || addBtn.contains(event.target);
-        if (!clickedInsideAdd && !addOuter.classList.contains("hidden")) {
-            addOuter.classList.add("hidden");
+        // Fechar formulário de adição
+        if (addOuter && addInner && addBtn) {
+            const clickedInsideAdd = addInner.contains(event.target) || addBtn.contains(event.target);
+            if (!clickedInsideAdd && !addOuter.classList.contains("hidden")) {
+                addOuter.classList.add("hidden");
+            }
         }
 
-        // Close "Edit" form
-        const clickedInsideEdit = editInner.contains(event.target) || event.target.closest(".edit-btn");
-        if (!clickedInsideEdit && !editOuter.classList.contains("hidden")) {
-            editOuter.classList.add("hidden");
+        // Fechar formulário de edição
+        if (editOuter && editInner) {
+            const clickedInsideEdit = editInner.contains(event.target) || event.target.closest(".edit-btn");
+            if (!clickedInsideEdit && !editOuter.classList.contains("hidden")) {
+                editOuter.classList.add("hidden");
+            }
         }
 
-        // Remove .active from all .entrata if clicked outside
-        const clickedInsideEntrata = [...entratas].some(el => el.contains(event.target));
-        if (!clickedInsideEntrata) {
-            entratas.forEach(el => el.classList.remove("active"));
+        // Remover destaque das entradas
+        if (entratas?.length) {
+            const clickedInsideEntrata = [...entratas].some(el => el.contains(event.target));
+            if (!clickedInsideEntrata) {
+                entratas.forEach(el => el.classList.remove("active"));
+            }
         }
     });
 });

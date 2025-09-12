@@ -4,8 +4,8 @@
     <button class="new-spese plus-btn"></button>
   </div>
 
-  <% entrys.forEach(item=> { %>
-    <div class="entrata">
+  <% family.forEach(item=> { %>
+    <div class="entrata entrata-family" data-id="<%= item.id %>">
       <div class="icon-circle">
         <img src="/images/family.svg" alt="" class="icon">
       </div>
@@ -16,6 +16,18 @@
         <h2 class="expense-value">
           <%= item.value.toFixed(2) %> €
         </h2>
+      </div>
+      <div class="actions">
+        <button class="edit-btn" data-id="<%= item.id %>" data-name="<%= item.name %>" data-value="<%= item.value %>"
+          data-date="<%= item.date_created ? item.date_created.toISOString().split('T')[0] : '' %>">
+          <img class="icon-edit" src="images/edit.svg" alt="">
+        </button>
+
+        <form action="/delete-family/<%= item.id %>" method="POST" class="delete-form" style="display:inline;">
+          <button type="submit" class="delete-btn">
+            <img class="icon-edit" src="images/delete.svg" alt="">
+          </button>
+        </form>
       </div>
     </div>
     <% }) %>
@@ -43,4 +55,23 @@
           </form>
         </div>
       </div>
-    </section>
+
+      <!-- Edit family -->
+      <div class="container-edit-btn hidden">
+        <div class="container">
+          <form id="edit-family-form" method="POST" class="form-family">
+            <label for="edit-name">Nome</label>
+            <input type="text" name="name" id="edit-name" required>
+            <label for="edit-value">Valore</label>
+            <input type="number" name="value" step="0.01" id="edit-value" required>
+            <label for="date">Data Mensile</label>
+            <input type="date" name="date_created" min="0" max="31" id="edit-date" required>
+            <div class="btn-container">
+              <button type="button"
+                onclick="document.querySelector('.container-edit-btn').classList.add('hidden')">Annulla</button>
+              <button type="submit" class="submit-btn">Salva</button>
+            </div>
+          </form>
+        </div>
+      </div>
+</section>

@@ -9,11 +9,11 @@ console.log("DATABASE_URL:", process.env.DATABASE_URL);
 const db = new pg.Client({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-      rejectUnauthorized: false
+        rejectUnauthorized: false
     }
-  });
-  
-   
+});
+
+
 
 const app = express();
 const port = 3000;
@@ -127,102 +127,136 @@ app.post("/add-weekly_expenses", async (req, res) => {
     }
 });
 
+app.post("/edit-weekly_expenses/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name, value, date_expense } = req.body;
+  
+    try {
+      await db.query(
+        "UPDATE weekly_expenses SET name = $1, value = $2, date_expense = $3 WHERE id = $4",
+        [name, parseFloat(value), date_expense, id]
+      );
+      res.redirect("/");
+    } catch (err) {
+      console.error("Error editing expense:", err.message);
+      res.status(500).send("Internal server error");
+    }
+  });  
+
+  app.post("/delete-weekly_expenses/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+      await db.query("DELETE FROM weekly_expenses WHERE id = $1", [id]);
+      res.redirect("/");
+    } catch (err) {
+      console.error("Error deleting expense:", err.message);
+      res.status(500).send("Internal server error");
+    }
+  });
+  
+
 app.get("/family", async (req, res) => {
     try {
-        const result = await db.query("SELECT name, value FROM family ORDER BY name");
-        const entrys = result.rows.map(item => ({
-            ...item,
-            value: parseFloat(item.value)
-        }));
-
-        const total = entrys.reduce((acc, item) => acc + parseFloat(item.value), 0);
-
-        res.render("index", {
-            section: "family",
-            entrys,
-            total
-        });
+      const result = await db.query("SELECT id, name, value, date_created FROM family ORDER BY name");
+      const family = result.rows.map(item => ({
+        ...item,
+        value: parseFloat(item.value)
+      }));
+  
+      const total = family.reduce((acc, item) => acc + item.value, 0);
+  
+      res.render("index", {
+        section: "family",
+        family,
+        total
+      });
     } catch (err) {
-        console.error("error:", err);
-        res.status(500).send("Intern error");
+      console.error("Error:", err.message);
+      res.status(500).send("Intern error");
     }
-});
+  });
+  
 
 // entering new family member
 app.post("/add-family", async (req, res) => {
     const { name, value, date_created } = req.body;
+    await db.query("INSERT INTO family (name, value, date_created) VALUES ($1, $2, $3)", [name, value, date_created]);
+    res.redirect("/family");
+});
 
+app.post("/edit-family/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name, value, date_created } = req.body;
+    await db.query("UPDATE family SET name = $1, value = $2, date_created = $3 WHERE id = $4", [name, value, date_created, id]);
+    res.redirect("/family");
+});
+
+app.post("/delete-family/:id", async (req, res) => {
+    const { id } = req.params;
+    await db.query("DELETE FROM family WHERE id = $1", [id]);
+    res.redirect("/family");
+});
+
+
+app.get("/bills", async (req, res) => {
+    try {
+        const result = await db.query("SELECT id, name, value, day FROM bills ORDER BY name");
+        const bills = result.rows.map(item => ({
+            ...item,
+            value: parseFloat(item.value)
+        }));
+
+        const total = bills.reduce((acc, item) => acc + item.value, 0);
+
+        res.render("index", {
+            section: "bills",
+            bills,
+            total
+        });
+    } catch (err) {
+        console.error("Error:", err.message);
+        res.status(500).send("Internal error: " + err.message);
+    }
+});
+
+app.post("/add-bill", async (req, res) => {
+    const { name, value, day } = req.body;
     try {
         await db.query(
-            "INSERT INTO family (name, value, date_created) VALUES ($1, $2, $3)",
-            [name, parseFloat(value), date_created]
+            "INSERT INTO bills (name, value, day) VALUES ($1, $2, $3)",
+            [name, parseFloat(value), parseInt(day)]
         );
-        res.redirect("/family");
+        res.redirect("/bills");
     } catch (err) {
-        console.error("Error adding family member:", err.message);
+        console.error("Error adding bill:", err.message);
         res.status(500).send("Internal server error");
     }
 });
 
-app.get("/bills", async (req, res) => {
-  try {
-    const result = await db.query("SELECT id, name, value, day FROM bills ORDER BY name");
-    const bills = result.rows.map(item => ({
-      ...item,
-      value: parseFloat(item.value)
-    }));
-
-    const total = bills.reduce((acc, item) => acc + item.value, 0);
-
-    res.render("index", {
-      section: "bills",
-      bills,
-      total
-    });
-  } catch (err) {
-    console.error("Error:", err.message);
-    res.status(500).send("Internal error: " + err.message);
-  }
-});
-
-app.post("/add-bill", async (req, res) => {
-  const { name, value, day } = req.body;
-  try {
-    await db.query(
-      "INSERT INTO bills (name, value, day) VALUES ($1, $2, $3)",
-      [name, parseFloat(value), parseInt(day)]
-    );
-    res.redirect("/bills");
-  } catch (err) {
-    console.error("Error adding bill:", err.message);
-    res.status(500).send("Internal server error");
-  }
-});
-
 app.post("/edit-bill/:id", async (req, res) => {
-  const { id } = req.params;
-  const { name, value, day } = req.body;
-  try {
-    await db.query(
-      "UPDATE bills SET name = $1, value = $2, day = $3 WHERE id = $4",
-      [name, parseFloat(value), parseInt(day), id]
-    );
-    res.redirect("/bills");
-  } catch (err) {
-    console.error("Error editing bill:", err.message);
-    res.status(500).send("Internal server error");
-  }
+    const { id } = req.params;
+    const { name, value, day } = req.body;
+    try {
+        await db.query(
+            "UPDATE bills SET name = $1, value = $2, day = $3 WHERE id = $4",
+            [name, parseFloat(value), parseInt(day), id]
+        );
+        res.redirect("/bills");
+    } catch (err) {
+        console.error("Error editing bill:", err.message);
+        res.status(500).send("Internal server error");
+    }
 });
 
 app.post("/delete-bill/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.query("DELETE FROM bills WHERE id = $1", [id]);
-    res.redirect("/bills");
-  } catch (err) {
-    console.error("Error deleting bill:", err.message);
-    res.status(500).send("Internal server error");
-  }
+    const { id } = req.params;
+    try {
+        await db.query("DELETE FROM bills WHERE id = $1", [id]);
+        res.redirect("/bills");
+    } catch (err) {
+        console.error("Error deleting bill:", err.message);
+        res.status(500).send("Internal server error");
+    }
 });
 
 
