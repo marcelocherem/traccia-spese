@@ -1,7 +1,7 @@
 * {
     padding: 0;
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "roboto", sans-serif;
     font-weight: 100;
 }
 
@@ -134,7 +134,7 @@ section .title {
 }
 
 section .title .title-name {
-    font-family: "Mozilla Text", sans-serif;
+    font-family: "roboto", sans-serif;
     font-weight: 500;
 }
 
@@ -227,6 +227,7 @@ section .total-week .infos .line td {
 /* spese e entrate */
 section .expense,
 section .entrata {
+    position: relative;
     width: calc(100% - 40px);
     background-color: #FFF;
     display: flex;
@@ -234,6 +235,7 @@ section .entrata {
     margin: 5px 0;
     border-radius: 15px;
     box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
 }
 
 section .expense.total,
@@ -296,6 +298,48 @@ section .entrata .income-text .expense-value {
     text-wrap: nowrap;
 }
 
+/* edit and delete btn */
+section .actions {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-evenly;
+    height: 100%;
+    right: -20px;
+    transition: right 0.3s ease;
+}
+
+.entrata.active .actions {
+    right: 5px;
+}
+
+.expense-value {
+    transition: margin-right 0.3s ease;
+}
+
+.entrata.active .expense-value {
+    margin-right: 15px;
+}
+
+section .actions button {
+    background-color: transparent;
+    border: none;
+}
+
+section .actions * {
+    height: 20px;
+    width: 20px;
+}
+
+section .actions form {
+    display: flex;
+}
+
+section .actions img {
+    filter: brightness(40%);
+}
+
 
 /* risparmi */
 
@@ -333,7 +377,8 @@ section .savings .income-text {
 }
 
 /* container */
-.container-plus-btn {
+.container-plus-btn,
+.container-edit-btn {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
@@ -345,41 +390,60 @@ section .savings .income-text {
 }
 
 @media (min-width:450px) {
-    .container-plus-btn {
+
+    .container-plus-btn,
+    .container-edit-btn {
         max-width: 450px;
     }
 
 }
 
 .container-plus-btn.hidden-spese,
-.container-plus-btn.hidden {
+.container-plus-btn.hidden,
+.container-edit-btn.hidden-spese,
+.container-edit-btn.hidden {
     display: none;
 }
 
-.container-plus-btn .container {
+.container-plus-btn .container,
+.container-edit-btn .container {
     width: calc(100% - 40px);
     border-radius: 15px;
     background-color: white;
 }
 
-.container-plus-btn .container .form-family {
+.container-plus-btn .container .form-family,
+.container-edit-btn .container .form-family {
     display: flex;
     flex-direction: column;
     padding: 20px;
 }
 
-.container-plus-btn .container .form-family input {
+.container-plus-btn .container .form-family input,
+.container-edit-btn .container .form-family input {
     margin-bottom: 15px;
     padding: 10px;
     border: none;
     border-bottom: 2px solid gray;
 }
 
-.container-plus-btn .container .form-family input:focus {
+.container-plus-btn .container .form-family input:focus,
+.container-edit-btn .container .form-family input:focus {
     outline: none;
 }
 
-.container-plus-btn .container .form-family button {
+.container-edit-btn .btn-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.container-edit-btn .btn-container button {
+    width: 48%;
+}
+
+.container-plus-btn .container .form-family button,
+.container-edit-btn .container .form-family button {
     height: 60px;
     font-size: 1.3rem;
     border: none;
@@ -390,8 +454,7 @@ section .savings .income-text {
 
 }
 
-.container-plus-btn .container .form-family button:hover {
+.container-plus-btn .container .form-family button:hover,
+.container-edit-btn .container .form-family button:hover {
     background-color: #FC673A;
 }
-
-/* "test": "echo \"Error: no test specified\" && exit 1" */

@@ -165,40 +165,66 @@ app.post("/add-family", async (req, res) => {
 });
 
 app.get("/bills", async (req, res) => {
-    try {
-        const result = await db.query("SELECT name, value FROM bills ORDER BY name");
-        const bills = result.rows.map(item => ({
-            ...item,
-            value: parseFloat(item.value)
-        }));
+  try {
+    const result = await db.query("SELECT id, name, value, day FROM bills ORDER BY name");
+    const bills = result.rows.map(item => ({
+      ...item,
+      value: parseFloat(item.value)
+    }));
 
-        const total = bills.reduce((acc, item) => acc + item.value, 0);
+    const total = bills.reduce((acc, item) => acc + item.value, 0);
 
-        res.render("index", {
-            section: "bills",
-            bills,
-            total
-        });
-    } catch (err) {
-        console.error("Error:", err.message);
-        res.status(500).send("Intern error" + err.message);
-    }
+    res.render("index", {
+      section: "bills",
+      bills,
+      total
+    });
+  } catch (err) {
+    console.error("Error:", err.message);
+    res.status(500).send("Internal error: " + err.message);
+  }
 });
 
 app.post("/add-bill", async (req, res) => {
-    const { name, value, day } = req.body;
-
-    try {
-        await db.query(
-            "INSERT INTO bills (name, value, day) VALUES ($1, $2, $3)",
-            [name, parseFloat(value), parseInt(day)]
-        );
-        res.redirect("/bills");
-    } catch (err) {
-        console.error("Error adding bill:", err.message);
-        res.status(500).send("Internal server error");
-    }
+  const { name, value, day } = req.body;
+  try {
+    await db.query(
+      "INSERT INTO bills (name, value, day) VALUES ($1, $2, $3)",
+      [name, parseFloat(value), parseInt(day)]
+    );
+    res.redirect("/bills");
+  } catch (err) {
+    console.error("Error adding bill:", err.message);
+    res.status(500).send("Internal server error");
+  }
 });
+
+app.post("/edit-bill/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, value, day } = req.body;
+  try {
+    await db.query(
+      "UPDATE bills SET name = $1, value = $2, day = $3 WHERE id = $4",
+      [name, parseFloat(value), parseInt(day), id]
+    );
+    res.redirect("/bills");
+  } catch (err) {
+    console.error("Error editing bill:", err.message);
+    res.status(500).send("Internal server error");
+  }
+});
+
+app.post("/delete-bill/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query("DELETE FROM bills WHERE id = $1", [id]);
+    res.redirect("/bills");
+  } catch (err) {
+    console.error("Error deleting bill:", err.message);
+    res.status(500).send("Internal server error");
+  }
+});
+
 
 
 app.listen(port, () => {

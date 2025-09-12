@@ -5,8 +5,7 @@
   </div>
 
   <% bills.forEach(item=> { %>
-
-    <div class="entrata entrata-bills">
+    <div class="entrata entrata-bills" data-id="<%= item.id %>">
       <div class="income-text">
         <h2 class="expense-name">
           <%= item.name %>
@@ -14,6 +13,17 @@
         <h2 class="expense-value">
           <%= item.value.toFixed(2) %> €
         </h2>
+      </div>
+      <div class="actions">
+        <button class="edit-btn" data-id="<%= item.id %>" data-name="<%= item.name %>" data-value="<%= item.value %>"
+          data-day="<%= item.day %>">
+          <img class="icon-edit" src="images/edit.svg" alt="">
+        </button>
+        <form action="/delete-bill/<%= item.id %>" method="POST" class="delete-form" style="display:inline;">
+          <button type="submit" class="delete-btn">
+            <img class="icon-edit" src="images/delete.svg" alt="">
+          </button>
+        </form>
       </div>
     </div>
     <% }) %>
@@ -27,18 +37,39 @@
           </h2>
         </div>
       </div>
-      <!-- adding stuff -->
+      <!-- Adicionar nova spesa -->
       <div class="container-plus-btn hidden">
         <div class="container">
-          <form action="/add-bill" method="POST" class="form-family">
-            <label for="name">Nome</label>
-            <input type="text" name="name" placeholder="Scrive il nome" required>
-            <label for="value">Valore</label>
-            <input type="number" name="value" step="0.01" placeholder="Scrive il valore (€)" required>
-            <label for="day">giorno di paga</label>
-            <input type="number" name="day" min="0" max="31" placeholder="00" required>
+          <form id="add-bill-form" action="/add-bill" method="POST" class="form-family">
+            <label for="add-name">Nome</label>
+            <input type="text" name="name" id="add-name" required>
+            <label for="add-value">Valore</label>
+            <input type="number" name="value" step="0.01" id="add-value" required>
+            <label for="add-day">giorno di paga</label>
+            <input type="number" name="day" min="0" max="31" id="add-day" required>
             <button type="submit" class="submit-btn">Aggiungi</button>
           </form>
         </div>
       </div>
+
+      <!-- Editar spesa existente -->
+      <div class="container-edit-btn hidden">
+        <div class="container">
+          <form id="edit-bill-form" method="POST" class="form-family">
+            <label for="edit-name">Nome</label>
+            <input type="text" name="name" id="edit-name" required>
+            <label for="edit-value">Valore</label>
+            <input type="number" name="value" step="0.01" id="edit-value" required>
+            <label for="edit-day">giorno di paga</label>
+            <input type="number" name="day" min="0" max="31" id="edit-day" required>
+            <div class="btn-container">
+              <button type="button"
+                onclick="document.querySelector('.container-edit-btn').classList.add('hidden')">Annulla</button>
+              <button type="submit" class="submit-btn">Salva</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+
 </section>
