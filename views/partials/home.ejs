@@ -4,32 +4,54 @@
     <button class="new-spese plus-btn"></button>
   </div>
 
+  <!-- first container -->
   <div class="total-week">
-    <h2 class="daysWeek"><%= weekLabel %></h2>
+    <h2 class="daysWeek">
+      <%= weekLabel %>
+    </h2>
     <div class="infos">
       <div class="container-table">
         <table class="container-text">
-          <tr><td class="name">Limite</td><td class="value"><%= limit.toFixed(2) %></td></tr>
-          <tr><td class="name">Speso</td><td class="value"><%= total.toFixed(2) %></td></tr>
-          <tr class="line"><td colspan="2"></td></tr>
-          <tr><td class="name">Libero</td><td class="value <%= remaining < 0 ? 'negative' : '' %>"><%= remaining.toFixed(2) %></td></tr>
+          <tr>
+            <td class="name">Limite</td>
+            <td class="value">
+              <%= limit.toFixed(2) %>
+            </td>
+          </tr>
+          <tr>
+            <td class="name">Speso</td>
+            <td class="value">
+              <%= total.toFixed(2) %>
+            </td>
+          </tr>
+          <tr class="line">
+            <td colspan="2"></td>
+          </tr>
+          <tr>
+            <td class="name">Libero</td>
+            <td class="value <%= remaining < 0 ? 'negative' : '' %>">
+              <%= remaining.toFixed(2) %>
+            </td>
+          </tr>
         </table>
       </div>
     </div>
   </div>
 
-  <% expenses.forEach(item => { %>
+<!-- expenses -->
+  <% expenses.forEach(item=> { %>
     <div class="entrata entrata-bills">
       <div class="income-text">
-        <h2 class="expense-name"><%= item.name %></h2>
-        <h2 class="expense-value"><%= item.value.toFixed(2) %> €</h2>
+        <h2 class="expense-name">
+          <%= item.name %>
+        </h2>
+        <h2 class="expense-value">
+          <%= item.value.toFixed(2) %> €
+        </h2>
       </div>
       <div class="actions">
-        <button class="edit-btn"
-                data-id="<%= item.id %>"
-                data-name="<%= item.name %>"
-                data-value="<%= item.value %>"
-                data-date="<%= item.date_expense ? item.date_expense.toISOString().split('T')[0] : '' %>">
+        <button class="edit-btn" data-id="<%= item.id %>" data-name="<%= item.name %>" data-value="<%= item.value %>"
+          data-date="<%= item.date_expense ? item.date_expense.toISOString().split('T')[0] : '' %>">
           <img class="icon-edit" src="images/edit.svg" alt="">
         </button>
         <form action="/delete-weekly_expenses/<%= item.id %>" method="POST" class="delete-form" style="display:inline;">
@@ -39,38 +61,39 @@
         </form>
       </div>
     </div>
-  <% }) %>
+    <% }) %>
 
-  <!-- Adicionar nova despesa -->
-  <div class="container-plus-btn hidden">
-    <div class="container">
-      <form action="/add-weekly_expenses" method="POST" class="form-family">
-        <label for="name">Nome</label>
-        <input type="text" name="name" placeholder="Scrive il nome" required>
-        <label for="value">Valore</label>
-        <input type="number" name="value" step="0.01" placeholder="Scrive il valore (€)" required>
-        <label for="date_expense">Data della spesa</label>
-        <input type="date" name="date_expense" required>
-        <button type="submit" class="submit-btn">Aggiungi</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Editar despesa -->
-  <div class="container-edit-btn hidden">
-    <div class="container">
-      <form id="edit-weekly-form" method="POST" class="form-family">
-        <label for="edit-name">Nome</label>
-        <input type="text" name="name" id="edit-name" required>
-        <label for="edit-value">Valore</label>
-        <input type="number" name="value" step="0.01" id="edit-value" required>
-        <label for="edit-date">Data della spesa</label>
-        <input type="date" name="date_expense" id="edit-date" required>
-        <div class="btn-container">
-          <button type="button" onclick="document.querySelector('#home .container-edit-btn').classList.add('hidden')">Annulla</button>
-          <button type="submit" class="submit-btn">Salva</button>
+      <!-- add new expense -->
+      <div class="container-plus-btn hidden">
+        <div class="container">
+          <form action="/add-weekly_expenses" method="POST" class="form-family">
+            <label for="name">Nome</label>
+            <input type="text" name="name" placeholder="Scrive il nome" required>
+            <label for="value">Valore</label>
+            <input type="number" name="value" step="0.01" placeholder="Scrive il valore (€)" required>
+            <label for="date_expense">Data della spesa</label>
+            <input type="date" name="date_expense" required>
+            <button type="submit" class="submit-btn">Aggiungi</button>
+          </form>
         </div>
-      </form>
-    </div>
-  </div>
+      </div>
+
+      <!-- edit expense -->
+      <div class="container-edit-btn hidden">
+        <div class="container">
+          <form id="edit-weekly-form" method="POST" class="form-family">
+            <label for="edit-name">Nome</label>
+            <input type="text" name="name" id="edit-name" required>
+            <label for="edit-value">Valore</label>
+            <input type="number" name="value" step="0.01" id="edit-value" required>
+            <label for="edit-date">Data della spesa</label>
+            <input type="date" name="date_expense" id="edit-date" required>
+            <div class="btn-container">
+              <button type="button"
+                onclick="document.querySelector('#home .container-edit-btn').classList.add('hidden')">Annulla</button>
+              <button type="submit" class="submit-btn">Salva</button>
+            </div>
+          </form>
+        </div>
+      </div>
 </section>

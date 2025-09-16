@@ -93,6 +93,9 @@ footer .nav-list .btn-icon {
     cursor: pointer;
     width: 60px;
 }
+footer .nav-list .btn-icon:focus {
+    outline: none;
+}
 
 footer .nav-list .btn-icon img {
     width: 30px;
@@ -454,4 +457,9 @@ section .savings .income-text {
 .container-plus-btn .container .form-family button:hover,
 .container-edit-btn .container .form-family button:hover {
     background-color: #FC673A;
+}
+
+button:focus,
+a:focus {
+  outline: none;
 }
