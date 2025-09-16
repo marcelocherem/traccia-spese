@@ -50,6 +50,7 @@ header {
 
 header .logo {
     width: 40px;
+    height: 40px;
     margin: 0 20px 0 10px;
 }
 
@@ -120,7 +121,8 @@ main section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center
+    justify-content: center;
+    margin-bottom: 22px;
 }
 
 /* generic */
@@ -236,11 +238,6 @@ section .entrata {
     border-radius: 15px;
     box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-}
-
-section .expense.total,
-section .entrata.total {
-    margin-bottom: 40px;
 }
 
 section .expense .icon-circle,

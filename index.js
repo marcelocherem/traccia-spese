@@ -25,92 +25,127 @@ app.set("view engine", "ejs");
 
 app.get("/", async (req, res) => {
     try {
-        // Current week (Monday to Sunday)
-        const today = new Date();
-        const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday...
-        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() + diffToMonday);
-        weekStart.setHours(0, 0, 0, 0);
-
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-        weekEnd.setHours(23, 59, 59, 999);
-
-        const weekLabel = `${weekStart.toLocaleDateString("en-GB", { day: '2-digit', month: 'short' })} - ${weekEnd.toLocaleDateString("en-GB", { day: '2-digit', month: 'short' })}`;
-
-        // Period from the 13th of one month to the 13th of the next
-        const year = today.getFullYear();
-        const month = today.getDate() >= 13 ? today.getMonth() : today.getMonth() - 1;
-
-        const periodStart = new Date(year, month, 13);
-        const periodEnd = new Date(year, month + 1, 13);
-
-
-        // Count weeks including partial ones
-        function countWeeksBetween(startDate, endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-
-            // Align start to Monday
-            const startDay = start.getDay();
-            const diffToMonday = startDay === 0 ? -6 : 1 - startDay;
-            start.setDate(start.getDate() + diffToMonday);
-
-            // Align end to Sunday
-            const endDay = end.getDay();
-            const diffToSunday = endDay === 0 ? 0 : 7 - endDay;
-            end.setDate(end.getDate() + diffToSunday);
-
-            const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-            return Math.ceil(totalDays / 7);
-
-        }
-
-        const totalWeeks = countWeeksBetween(periodStart, periodEnd);
-
-        // Income
-        const incomeRes = await db.query("SELECT value FROM family");
-        const incomeValues = incomeRes.rows.map(e => parseFloat(e.value));
-        const totalIncome = incomeValues.reduce((acc, val) => acc + val, 0);
-
-        // Fixed bills
-        const billsRes = await db.query("SELECT value FROM bills");
-        const billValues = billsRes.rows.map(d => parseFloat(d.value));
-        const totalBills = billValues.reduce((acc, val) => acc + val, 0);
-
-        // Weekly limit
-        const weeklyLimit = (totalIncome - totalBills) / totalWeeks;
-
-        // Weekly expenses
-        const expensesRes = await db.query(
-            "SELECT id, name, value, date_expense FROM weekly_expenses WHERE date_expense BETWEEN $1 AND $2 ORDER BY date_expense DESC",
-            [weekStart, weekEnd]
+      // 📅 Semana atual (segunda a domingo)
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // 0 = domingo, 1 = segunda...
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() + diffToMonday);
+      weekStart.setHours(0, 0, 0, 0);
+  
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+  
+      const weekLabel = `${weekStart.toLocaleDateString("en-GB", { day: '2-digit', month: 'short' })} - ${weekEnd.toLocaleDateString("en-GB", { day: '2-digit', month: 'short' })}`;
+  
+      // 📆 Período mensal (13 a 13)
+      const year = today.getFullYear();
+      const month = today.getDate() >= 13 ? today.getMonth() : today.getMonth() - 1;
+  
+      const periodStart = new Date(year, month, 13);
+      const periodEnd = new Date(year, month + 1, 13);
+  
+      // 🔢 Contar semanas no período
+      function countWeeksBetween(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+  
+        const startDay = start.getDay();
+        const diffToMonday = startDay === 0 ? -6 : 1 - startDay;
+        start.setDate(start.getDate() + diffToMonday);
+  
+        const endDay = end.getDay();
+        const diffToSunday = endDay === 0 ? 0 : 7 - endDay;
+        end.setDate(end.getDate() + diffToSunday);
+  
+        const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        return Math.ceil(totalDays / 7);
+      }
+  
+      const totalWeeks = countWeeksBetween(periodStart, periodEnd);
+  
+      // 💰 Receitas
+      const incomeRes = await db.query("SELECT value FROM family");
+      const incomeValues = incomeRes.rows.map(e => parseFloat(e.value));
+      const totalIncome = incomeValues.reduce((acc, val) => acc + val, 0);
+  
+      // 🧾 Contas fixas
+      const billsRes = await db.query("SELECT value FROM bills");
+      const billValues = billsRes.rows.map(d => parseFloat(d.value));
+      const totalBills = billValues.reduce((acc, val) => acc + val, 0);
+  
+      // 📉 Limite semanal
+      const weeklyLimit = (totalIncome - totalBills) / totalWeeks;
+  
+      // 🔄 Correção automática da semana anterior
+      const prevWeekStart = new Date(weekStart);
+      prevWeekStart.setDate(weekStart.getDate() - 7);
+      prevWeekStart.setHours(0, 0, 0, 0);
+  
+      const prevWeekEnd = new Date(prevWeekStart);
+      prevWeekEnd.setDate(prevWeekStart.getDate() + 6);
+      prevWeekEnd.setHours(23, 59, 59, 999);
+  
+      const prevExpensesRes = await db.query(
+        "SELECT value FROM weekly_expenses WHERE date_expense BETWEEN $1 AND $2",
+        [prevWeekStart, prevWeekEnd]
+      );
+      const prevExpenses = prevExpensesRes.rows.map(e => parseFloat(e.value));
+      const prevTotalSpent = prevExpenses.reduce((acc, val) => acc + val, 0);
+      const prevRemaining = weeklyLimit - prevTotalSpent;
+  
+      const correctionCheck = await db.query(
+        "SELECT * FROM weekly_expenses WHERE name = $1 AND date_expense BETWEEN $2 AND $3",
+        ["rettifica settimana precedente", weekStart, weekEnd]
+      );
+  
+      if (correctionCheck.rows.length === 0 && prevRemaining !== 0) {
+        const correctionValue = Math.abs(prevRemaining);
+        const correctionSign = prevRemaining < 0 ? correctionValue : -correctionValue;
+  
+        const sundayPrev = new Date(prevWeekEnd);
+        const mondayCurrent = new Date(weekStart);
+  
+        await db.query(
+          "INSERT INTO weekly_expenses (name, value, date_expense) VALUES ($1, $2, $3)",
+          ["rettifica settimana precedente", correctionSign, mondayCurrent]
         );
-
-        const expenses = expensesRes.rows.map(exp => ({
-            ...exp,
-            value: parseFloat(exp.value)
-        }));
-
-        const totalSpent = expenses.reduce((acc, exp) => acc + exp.value, 0);
-        const remainingBudget = weeklyLimit - totalSpent;
-
-        // Render home page
-        res.render("index", {
-            section: "home",
-            expenses,
-            total: totalSpent,
-            limit: weeklyLimit,
-            remaining: remainingBudget,
-            weekLabel
-        });
+  
+        await db.query(
+          "INSERT INTO weekly_expenses (name, value, date_expense) VALUES ($1, $2, $3)",
+          ["rettifica settimana precedente", -correctionSign, sundayPrev]
+        );
+      }
+  
+      // 🧾 Despesas semana atual
+      const expensesRes = await db.query(
+        "SELECT id, name, value, date_expense FROM weekly_expenses WHERE date_expense BETWEEN $1 AND $2 ORDER BY date_expense DESC",
+        [weekStart, weekEnd]
+      );
+  
+      const expenses = expensesRes.rows.map(exp => ({
+        ...exp,
+        value: parseFloat(exp.value)
+      }));
+  
+      const totalSpent = expenses.reduce((acc, exp) => acc + exp.value, 0);
+      const remainingBudget = weeklyLimit - totalSpent;
+  
+      res.render("index", {
+        section: "home",
+        expenses,
+        total: totalSpent,
+        limit: weeklyLimit,
+        remaining: remainingBudget,
+        weekLabel
+      });
     } catch (err) {
-        console.error("Error loading Home page:", err.message);
-        res.status(500).send("Internal server error: " + err.message);
+      console.error("Error loading Home page:", err.message);
+      res.status(500).send("Internal server error: " + err.message);
     }
-});
+  });
 
 app.post("/add-weekly_expenses", async (req, res) => {
     const { name, value, date_expense } = req.body;
