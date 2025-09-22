@@ -304,3 +304,39 @@ app.post("/delete-bill/:id", async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}.`);
 });
+
+// history page
+app.get("/history", async (req, res) => {
+  const { from, to } = req.query;
+
+  try {
+    let history = [];
+
+    if (from && to) {
+      const fromDate = new Date(from);
+      const toDate = new Date(to);
+      toDate.setHours(23, 59, 59, 999); // incluir o dia final
+
+      const result = await db.query(
+        "SELECT id, name, value, date_expense FROM weekly_expenses WHERE date_expense BETWEEN $1 AND $2 ORDER BY date_expense DESC",
+        [fromDate, toDate]
+      );
+
+      history = result.rows.map(item => ({
+        ...item,
+        value: parseFloat(item.value),
+        date: item.date_expense.toISOString().split("T")[0]
+      }));
+    }
+
+    res.render("index", {
+      section: "history",
+      history,
+      from,
+      to
+    });
+  } catch (err) {
+    console.error("Error loading history:", err.message);
+    res.status(500).send("Internal server error");
+  }
+});

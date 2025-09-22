@@ -1,0 +1,45 @@
+
+    <section id="history">
+      <div class="title">
+        <h2 class="title-name">Storico spese settimanali</h2>
+      </div>
+  
+      <form method="GET" action="/history" class="form-history">
+        <label for="from">Da:</label>
+        <input type="date" name="from" id="from" value="<%= from || '' %>" required>
+  
+        <label for="to">A:</label>
+        <input type="date" name="to" id="to" value="<%= to || '' %>" required>
+  
+        <button type="submit" class="submit-btn">Visualizza</button>
+      </form>
+  
+      <% if (history.length > 0) { %>
+        <% history.forEach(item => {
+             if (item.name !== "rettifica settimana precedente") { %>
+          <div class="entrata entrata-bills">
+            <div class="income-text">
+              <h2 class="expense-name"><%= item.name %></h2>
+              <h2 class="expense-value"><%= item.value.toFixed(2) %> €</h2>
+            </div>
+            <div class="actions">
+              <button class="edit-btn"
+                      data-id="<%= item.id %>"
+                      data-name="<%= item.name %>"
+                      data-value="<%= item.value %>"
+                      data-date="<%= item.date %>">
+                <img class="icon-edit" src="images/edit.svg" alt="">
+              </button>
+              <form action="/delete-weekly_expenses/<%= item.id %>" method="POST" class="delete-form" style="display:inline;">
+                <button type="submit" class="delete-btn">
+                  <img class="icon-edit" src="images/delete.svg" alt="">
+                </button>
+              </form>
+            </div>
+          </div>
+        <% } }) %>
+      <% } else if (from && to) { %>
+        <p>Nessuna spesa trovata per il periodo selezionato.</p>
+      <% } %>
+    </section>
+  
