@@ -6,7 +6,9 @@ import dotenv from "dotenv";
 dotenv.config();
 console.log("DATABASE_URL:", process.env.DATABASE_URL);
 
-const db = new pg.Client({
+const { Pool } = pg;
+
+const db = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
@@ -20,6 +22,7 @@ db.connect();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
+
 
 app.get("/", async (req, res) => {
   try {
@@ -315,7 +318,7 @@ app.get("/history", async (req, res) => {
     if (from && to) {
       const fromDate = new Date(from);
       const toDate = new Date(to);
-      toDate.setHours(23, 59, 59, 999); // incluir o dia final
+      toDate.setHours(23, 59, 59, 999);
 
       const result = await db.query(
         "SELECT id, name, value, date_expense FROM weekly_expenses WHERE date_expense BETWEEN $1 AND $2 ORDER BY date_expense DESC",
