@@ -23,7 +23,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
+// login
+app.get("/login", (req, res) => {
+  res.render("login");
+});
 
+// home page
 app.get("/", async (req, res) => {
   try {
     // actual week (monday - sunday)
