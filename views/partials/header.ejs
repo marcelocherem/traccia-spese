@@ -5,5 +5,16 @@
                 <img src="/images/logo.svg" alt="" class="logo-img">
             </a>
             <h1 class="name">Traccia Spese</h1>
+
+            <div class="dropdown-menu">
+                <button class="settings-btn" onclick="toggleLogout()">
+                  <img class="gear-icon" src="/images/settings.svg" alt="">
+                </button>
+              
+                <form method="POST" action="/logout" class="logout-form hidden">
+                  <button type="submit" class="logout-btn">Logout</button>
+                </form>
+              </div>
+              
         </header>
         <main>

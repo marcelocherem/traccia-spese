@@ -119,3 +119,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+
+// logout btn
+function toggleLogout() {
+    const btn = document.querySelector(".settings-btn");
+    const form = document.querySelector(".logout-form");
+  
+    btn.classList.toggle("active");
+    form.classList.toggle("hidden");
+  }
+  
+  // Fecha o menu se clicar fora
+  document.addEventListener("click", function (event) {
+    const dropdown = document.querySelector(".dropdown-menu");
+    const btn = document.querySelector(".settings-btn");
+    const form = document.querySelector(".logout-form");
+  
+    // Verifica se o clique foi fora do dropdown
+    if (!dropdown.contains(event.target)) {
+      btn.classList.remove("active");
+      form.classList.add("hidden");
+    }
+  });
+  

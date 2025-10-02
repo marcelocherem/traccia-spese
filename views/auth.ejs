@@ -1,0 +1,29 @@
+<%- include("partials/startheader.ejs") %>
+<section id="auth" class="fullContainer">
+  <img src="/images/logo.svg" alt="" class="logo-img">
+
+  <div class="container-login">
+    <h2><%= section === "login" ? "Login" : "Register" %></h2>
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+  
+    <form method="POST" action="<%= section === 'login' ? '/login' : '/register' %>">
+      <label for="username">Nome Utente</label>
+      <input type="text" name="username" required>
+  
+      <label for="password">Password</label>
+      <input type="password" name="password" required>
+  
+      <button type="submit"><%= section === "login" ? "Entrar" : "Registrar" %></button>
+    </form>
+  </div>
+    <% if (section === "login") { %>
+      <p>Non hai un account? <a href="/register">Registrati</a></p>
+    <% } else { %>
+      <p>Hai già un account? <a href="/login">Accedi</a></p>
+    <% } %>
+  </section>
+  
+  <script src="js/chart.js"></script>
+</body>
+
+</html>

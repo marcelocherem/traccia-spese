@@ -1,0 +1,5 @@
+add login/signin
+style for history page: add date
+change date to date: defined by user
+change photo 5122 x 512
+add in "spese fisse" if paid or not with automatic option (if not paid, add number in footer icon)
