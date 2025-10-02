@@ -4,29 +4,39 @@
   </div>
 
   <form method="GET" action="/history" class="form-history">
-    <label for="from">Da:</label>
-    <input type="date" name="from" id="from" value="<%= from || '' %>" required>
-
-    <label for="to">A:</label>
-    <input type="date" name="to" id="to" value="<%= to || '' %>" required>
-
+    <div class="months">
+      <div class="date-group">
+        <label for="from">Da:</label>
+        <input type="date" name="from" id="from" value="<%= from || '' %>" required>
+      </div>
+      <div class="date-group">
+        <label for="to">A:</label>
+        <input type="date" name="to" id="to" value="<%= to || '' %>" required>
+      </div>
+    </div>
     <button type="submit" class="submit-btn">Visualizza</button>
   </form>
 
-  <% if (summaries && summaries.length > 0) { %>
-    <% summaries.forEach(summary => { %>
+  <% if (summaries && summaries.length> 0) { %>
+    <% summaries.forEach(summary=> { %>
       <div class="total-week">
-        <h2 class="daysWeek"><%= summary.label %></h2>
+        <h2 class="daysWeek">
+          <%= summary.label %>
+        </h2>
         <div class="infos">
           <div class="container-table">
             <table class="container-text">
               <tr>
                 <td class="name">Limite</td>
-                <td class="value"><%= summary.weekly_limit.toFixed(2) %> €</td>
+                <td class="value">
+                  <%= summary.weekly_limit.toFixed(2) %> €
+                </td>
               </tr>
               <tr>
                 <td class="name">Speso</td>
-                <td class="value"><%= summary.total_spent.toFixed(2) %> €</td>
+                <td class="value">
+                  <%= summary.total_spent.toFixed(2) %> €
+                </td>
               </tr>
               <tr class="line">
                 <td colspan="2"></td>
@@ -41,8 +51,8 @@
           </div>
         </div>
       </div>
-    <% }) %>
-  <% } else if (from && to) { %>
-    <p>Nessun riepilogo trovato per il periodo selezionato.</p>
-  <% } %>
+      <% }) %>
+        <% } else if (from && to) { %>
+          <p>Nessun riepilogo trovato per il periodo selezionato.</p>
+          <% } %>
 </section>

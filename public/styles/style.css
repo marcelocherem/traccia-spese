@@ -484,7 +484,6 @@ section .actions img {
 
 
 /* risparmi */
-
 section .savings {
     width: calc(100% - 40px);
     background-color: #FFF;
@@ -599,6 +598,38 @@ section .savings .income-text {
 .container-plus-btn .container .form-family button:hover,
 .container-edit-btn .container .form-family button:hover {
     background-color: #FC673A;
+}
+
+/* history */
+#history .form-history {
+    width: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 15px;
+    background-color: white;
+    box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.3);
+    padding: 15px 0;
+}
+#history .form-history .months {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 10px;
+}
+#history .form-history .months input {
+    padding: 8px;
+    border: 1px solid #d1d1d1;
+    border-radius: 6px;
+}
+#history button {
+    width: 50%;
+    padding: 0.7rem;
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 6px;
 }
 
 /* taking off the blue effect */
