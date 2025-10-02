@@ -619,7 +619,7 @@ section .savings .income-text {
     margin-bottom: 10px;
 }
 #history .form-history .months input {
-    padding: 8px;
+    padding: 8px 4px;
     border: 1px solid #d1d1d1;
     border-radius: 6px;
 }
