@@ -107,7 +107,6 @@ section#auth p {
 
 section#auth a {
     color: #e67e22;
-    /* laranja da logo */
     text-decoration: none;
     font-weight: bold;
 }
@@ -115,14 +114,6 @@ section#auth a {
 section#auth a:hover {
     text-decoration: underline;
 }
-
-
-
-
-
-
-
-
 
 /* header */
 header {
@@ -211,17 +202,6 @@ header .logout-btn:hover {
     background-color: #c0392b;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 /* footer */
 footer {
     width: 450px;
@@ -293,7 +273,6 @@ main section {
 }
 
 /* generic */
-
 section .title {
     display: flex;
     align-items: center;
@@ -367,7 +346,6 @@ section .total-week .infos .container-table {
 }
 
 section .total-week .infos .container-text {
-    /* background-color: #F0F1F3; */
     width: 100%;
 }
 
@@ -623,6 +601,17 @@ section .savings .income-text {
     background-color: #FC673A;
 }
 
-*:focus {
-    outline: none;
+/* taking off the blue effect */
+button:focus,
+button:active {
+  outline: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus,
+a:active {
+  outline: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
 }

@@ -3,7 +3,7 @@ import pg from "pg";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import session from "express-session";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 dotenv.config();
 console.log("DATABASE_URL:", process.env.DATABASE_URL);
@@ -30,7 +30,7 @@ app.use(session({
   saveUninitialized: false,
   rolling: true,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 dias
+    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
   }
 }));
 
@@ -95,7 +95,7 @@ app.get("/", requireLogin, async (req, res) => {
   try {
     const username = req.session.username;
 
-    // Semana atual (segunda a domingo)
+    // this week monday to sunday
     const today = new Date();
     const dayOfWeek = today.getDay();
     const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -110,7 +110,7 @@ app.get("/", requireLogin, async (req, res) => {
 
     const weekLabel = `${weekStart.toLocaleDateString("it-IT", { day: '2-digit', month: 'short' })} - ${weekEnd.toLocaleDateString("it-IT", { day: '2-digit', month: 'short' })}`;
 
-    // Semana anterior
+    // lasst week
     const prevWeekStart = new Date(weekStart);
     prevWeekStart.setDate(weekStart.getDate() - 7);
     prevWeekStart.setHours(0, 0, 0, 0);
@@ -119,7 +119,7 @@ app.get("/", requireLogin, async (req, res) => {
     prevWeekEnd.setDate(prevWeekStart.getDate() + 6);
     prevWeekEnd.setHours(23, 59, 59, 999);
 
-    // Buscar salários válidos na semana anterior
+    // pick up the valid salary from the last week
     const prevSalaryRes = await db.query(`
       SELECT value, date_created FROM family
       WHERE username = $1 AND $2 BETWEEN date_created AND COALESCE(date_end, 'infinity')
@@ -159,7 +159,7 @@ app.get("/", requireLogin, async (req, res) => {
     const prevTotalSpent = parseFloat(prevExpensesRes.rows[0].sum) || 0;
     const prevRemaining = prevWeeklyLimit - prevTotalSpent;
 
-    // Atualizar ou inserir resumo da semana anterior
+    // update or insert resume from last week
     const prevSummaryCheck = await db.query(`
       SELECT id FROM weekly_summary
       WHERE username = $1 AND period_start = $2 AND period_end = $3
@@ -178,12 +178,12 @@ app.get("/", requireLogin, async (req, res) => {
       `, [prevWeeklyLimit, prevTotalSpent, prevRemaining, prevSummaryCheck.rows[0].id]);
     }
 
-    // Aplicar retifica se necessário
+    // Aply necessary retific
     const correctionCheck = await db.query(`
       SELECT COUNT(*) FROM weekly_expenses
       WHERE username = $1 AND name = $2
       AND date_expense BETWEEN $3 AND $4
-    `, [username, "rettifica settimana precedente", weekStart, weekEnd]);
+    `, [username, "rettifica sett. precedente", weekStart, weekEnd]);
 
     const alreadyInserted = parseInt(correctionCheck.rows[0].count) > 0;
 
@@ -196,16 +196,16 @@ app.get("/", requireLogin, async (req, res) => {
 
       await db.query(
         "INSERT INTO weekly_expenses (name, value, date_expense, username) VALUES ($1, $2, $3, $4)",
-        ["rettifica settimana precedente", correctionSign, mondayCurrent, username]
+        ["rettifica sett. precedente", correctionSign, mondayCurrent, username]
       );
 
       await db.query(
         "INSERT INTO weekly_expenses (name, value, date_expense, username) VALUES ($1, $2, $3, $4)",
-        ["rettifica settimana precedente", -correctionSign, sundayPrev, username]
+        ["rettifica sett. precedente", -correctionSign, sundayPrev, username]
       );
     }
 
-    // Semana atual: salários, contas, limite
+    // current week: salary, bills, limit
     const salaryRes = await db.query(`
       SELECT value, date_created FROM family
       WHERE username = $1 AND $2 BETWEEN date_created AND COALESCE(date_end, 'infinity')
@@ -279,8 +279,8 @@ app.get("/", requireLogin, async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Erro ao carregar página inicial:", err.message);
-    res.status(500).send("Erro interno: " + err.message);
+    console.error("Error:", err.message);
+    res.status(500).send("internal error: " + err.message);
   }
 });
 
@@ -295,13 +295,13 @@ app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
     const parsedValue = parseFloat(value);
     const expenseDate = new Date(date_expense);
 
-    // Inserir despesa
+    // Insert expense
     await db.query(
       "INSERT INTO weekly_expenses (name, value, date_expense, username) VALUES ($1, $2, $3, $4)",
       [name, parsedValue, expenseDate, username]
     );
 
-    // Calcular semana da despesa
+    // calculate week of expense
     const dayOfWeek = expenseDate.getDay();
     const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
 
@@ -313,7 +313,7 @@ app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
     weekEnd.setDate(weekStart.getDate() + 6);
     weekEnd.setHours(23, 59, 59, 999);
 
-    // Buscar salários válidos no início da semana
+    // search valid salarys from begining of the week
     const salaryRes = await db.query(`
       SELECT value, date_created FROM family
       WHERE username = $1 AND $2 BETWEEN date_created AND COALESCE(date_end, 'infinity')
@@ -322,7 +322,7 @@ app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
     const salaryValues = salaryRes.rows.map(s => parseFloat(s.value));
     const totalIncome = salaryValues.reduce((acc, val) => acc + val, 0);
 
-    // Calcular número de semanas entre data do salário e 13 do mês seguinte
+    // Calculate number of the weeks between salary date and 13th from the next month
     let totalWeeks = 4;
     if (salaryRes.rows.length > 0) {
       const salaryStartDate = new Date(salaryRes.rows[0].date_created);
@@ -334,15 +334,15 @@ app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
       totalWeeks = Math.ceil(diffDays / 7);
     }
 
-    // Buscar contas fixas
+    // search bills
     const billsRes = await db.query("SELECT value FROM bills WHERE username = $1", [username]);
     const billValues = billsRes.rows.map(b => parseFloat(b.value));
     const totalBills = billValues.reduce((acc, val) => acc + val, 0);
 
-    // Calcular limite semanal
+    // Calculate weekly limit
     const weeklyLimit = (totalIncome - totalBills) / totalWeeks;
 
-    // Somar gastos da semana
+    // add up expenses from the week
     const expensesRes = await db.query(`
       SELECT SUM(value) FROM weekly_expenses
       WHERE username = $1 AND date_expense BETWEEN $2 AND $3
@@ -351,7 +351,7 @@ app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
     const totalSpent = parseFloat(expensesRes.rows[0].sum) || 0;
     const remaining = weeklyLimit - totalSpent;
 
-    // Inserir ou atualizar weekly_summary
+    // Inserrt or update weekly summary
     const summaryExists = await db.query(`
       SELECT COUNT(*) FROM weekly_summary
       WHERE username = $1 AND period_start = $2 AND period_end = $3
@@ -372,8 +372,8 @@ app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
 
     res.redirect("/");
   } catch (err) {
-    console.error("Erro ao adicionar despesa:", err.message);
-    res.status(500).send("Erro interno");
+    console.error("Error:", err.message);
+    res.status(500).send("internal error" + err.message);
   }
 });
 
@@ -614,8 +614,8 @@ app.get("/history", requireLogin, async (req, res) => {
       to
     });
   } catch (err) {
-    console.error("Erro ao carregar histórico:", err.message);
-    res.status(500).send("Erro interno");
+    console.error("Error:", err.message);
+    res.status(500).send("internal error: " + err.message);
   }
 });
 
