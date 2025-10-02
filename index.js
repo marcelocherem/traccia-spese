@@ -126,9 +126,11 @@ app.get("/", requireLogin, async (req, res) => {
     `, [username, prevWeekStart]);
 
     const prevSalaryValues = prevSalaryRes.rows.map(s => parseFloat(s.value));
-    const prevTotalIncome = prevSalaryValues.reduce((acc, val) => acc + val, 0);
+    const prevTotalIncome = prevSalaryValues.length > 0
+      ? prevSalaryValues.reduce((acc, val) => acc + val, 0)
+      : 0;
 
-    const prevSalaryStartDate = prevSalaryRes.rows.length > 0
+    const prevSalaryStartDate = prevSalaryRes.rows[0]?.date_created
       ? new Date(prevSalaryRes.rows[0].date_created)
       : null;
 
@@ -143,7 +145,9 @@ app.get("/", requireLogin, async (req, res) => {
 
     const prevBillsRes = await db.query("SELECT value FROM bills WHERE username = $1", [username]);
     const prevBillValues = prevBillsRes.rows.map(b => parseFloat(b.value));
-    const prevTotalBills = prevBillValues.reduce((acc, val) => acc + val, 0);
+    const prevTotalBills = prevBillValues.length > 0
+      ? prevBillValues.reduce((acc, val) => acc + val, 0)
+      : 0;
 
     const prevWeeklyLimit = (prevTotalIncome - prevTotalBills) / prevTotalWeeks;
 
@@ -208,9 +212,11 @@ app.get("/", requireLogin, async (req, res) => {
     `, [username, weekStart]);
 
     const salaryValues = salaryRes.rows.map(s => parseFloat(s.value));
-    const totalIncome = salaryValues.reduce((acc, val) => acc + val, 0);
+    const totalIncome = salaryValues.length > 0
+      ? salaryValues.reduce((acc, val) => acc + val, 0)
+      : 0;
 
-    const salaryStartDate = salaryRes.rows.length > 0
+    const salaryStartDate = salaryRes.rows[0]?.date_created
       ? new Date(salaryRes.rows[0].date_created)
       : null;
 
@@ -225,7 +231,9 @@ app.get("/", requireLogin, async (req, res) => {
 
     const billsRes = await db.query("SELECT value FROM bills WHERE username = $1", [username]);
     const billValues = billsRes.rows.map(b => parseFloat(b.value));
-    const totalBills = billValues.reduce((acc, val) => acc + val, 0);
+    const totalBills = billValues.length > 0
+      ? billValues.reduce((acc, val) => acc + val, 0)
+      : 0;
 
     const weeklyLimit = (totalIncome - totalBills) / totalWeeks;
 
