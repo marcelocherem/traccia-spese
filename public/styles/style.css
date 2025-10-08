@@ -372,6 +372,10 @@ section .total-week .infos .line td {
     padding: 0 !important;
 }
 
+section#home .entrata .income-text {
+    padding: 20px 0;
+    width: calc(100% - 60px);
+} 
 /* spese e entrate */
 section .expense,
 section .entrata {
@@ -408,7 +412,9 @@ section#family .line {
     background-color: gray;
     margin: 15px 20px;
 }
-
+section .entrata-bills.total .income-text {
+    padding: 20PX 0;
+}
 section .expense .income-text,
 section .entrata .income-text {
     display: flex;
@@ -425,10 +431,33 @@ section#bills .line {
     background-color: gray;
     margin: 15px 20px;
 }
+section#bills .entrata-bills {
+    padding: 20px 0;
+}
 
-section .entrata-bills .income-text {
+section#bills .entrata-bills.total .income-text,
+section#family .entrata-bills.total .income-text{
     width: calc(100% - 40px);
-    margin: 20px 0;
+}
+
+section .entrata-bills .first-part,
+section .entrata-bills .second-part {
+    width: calc(100% - 40px);
+}
+
+section .entrata-bills .first-part {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+section .entrata-bills .second-part {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+section#bills .entrata-bills .income-text {
+    width: 100%;
 }
 
 section .expense .income-text .expense-name,

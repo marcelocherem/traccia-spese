@@ -501,7 +501,7 @@ app.get("/bills", requireLogin, async (req, res) => {
   const username = req.session.username;
   try {
     const result = await db.query(
-      "SELECT id, name, value, day FROM bills WHERE username = $1 ORDER BY name",
+      "SELECT id, name, value, day FROM bills WHERE username = $1 ORDER BY day ASC",
       [username]
     );
     const bills = result.rows.map(item => ({
@@ -580,7 +580,7 @@ app.post("/delete-bill/:id", requireLogin, async (req, res) => {
 app.get("/history", requireLogin, async (req, res) => {
   const { from, to } = req.query;
   const username = req.session.username;
-
+  
   try {
     let summaries = [];
 
