@@ -37,7 +37,16 @@
       </div>
     </div>
   </div>
-
+  <!-- rettifica set. -->
+  <% if (showRetifica) { %>
+    <div class="retifica-info entrata entrata-bills">
+      <div class="income-text">
+        <h2>Rettifica sett. precedente</h2>
+        <h2><%= retificaValue.toFixed(2) %> €</h2>
+      </div>
+    </div>
+  <% } %>
+  
   <!-- expenses list -->
   <% expenses.forEach(item => { %>
     <div class="entrata entrata-bills">

@@ -19,7 +19,7 @@ const db = new Pool({
 
 const app = express();
 const port = 3000;
-db.connect();
+// db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -110,7 +110,7 @@ app.get("/", requireLogin, async (req, res) => {
 
     const weekLabel = `${weekStart.toLocaleDateString("it-IT", { day: '2-digit', month: 'short' })} - ${weekEnd.toLocaleDateString("it-IT", { day: '2-digit', month: 'short' })}`;
 
-    // lasst week
+    // last week
     const prevWeekStart = new Date(weekStart);
     prevWeekStart.setDate(weekStart.getDate() - 7);
     prevWeekStart.setHours(0, 0, 0, 0);
@@ -119,7 +119,7 @@ app.get("/", requireLogin, async (req, res) => {
     prevWeekEnd.setDate(prevWeekStart.getDate() + 6);
     prevWeekEnd.setHours(23, 59, 59, 999);
 
-    // pick up the valid salary from the last week
+    // previous salary
     const prevSalaryRes = await db.query(`
       SELECT value, date_created FROM family
       WHERE username = $1 AND $2 BETWEEN date_created AND COALESCE(date_end, 'infinity')
@@ -159,7 +159,7 @@ app.get("/", requireLogin, async (req, res) => {
     const prevTotalSpent = parseFloat(prevExpensesRes.rows[0].sum) || 0;
     const prevRemaining = prevWeeklyLimit - prevTotalSpent;
 
-    // update or insert resume from last week
+    // update or insert previous summary
     const prevSummaryCheck = await db.query(`
       SELECT id FROM weekly_summary
       WHERE username = $1 AND period_start = $2 AND period_end = $3
@@ -178,34 +178,7 @@ app.get("/", requireLogin, async (req, res) => {
       `, [prevWeeklyLimit, prevTotalSpent, prevRemaining, prevSummaryCheck.rows[0].id]);
     }
 
-    // Aply necessary retific
-    const correctionCheck = await db.query(`
-      SELECT COUNT(*) FROM weekly_expenses
-      WHERE username = $1 AND name = $2
-      AND date_expense BETWEEN $3 AND $4
-    `, [username, "rettifica sett. precedente", weekStart, weekEnd]);
-
-    const alreadyInserted = parseInt(correctionCheck.rows[0].count) > 0;
-
-    if (!alreadyInserted && prevRemaining !== 0) {
-      const correctionValue = Math.abs(prevRemaining);
-      const correctionSign = prevRemaining < 0 ? correctionValue : -correctionValue;
-
-      const sundayPrev = new Date(prevWeekEnd);
-      const mondayCurrent = new Date(weekStart);
-
-      await db.query(
-        "INSERT INTO weekly_expenses (name, value, date_expense, username) VALUES ($1, $2, $3, $4)",
-        ["rettifica sett. precedente", correctionSign, mondayCurrent, username]
-      );
-
-      await db.query(
-        "INSERT INTO weekly_expenses (name, value, date_expense, username) VALUES ($1, $2, $3, $4)",
-        ["rettifica sett. precedente", -correctionSign, sundayPrev, username]
-      );
-    }
-
-    // current week: salary, bills, limit
+    // current salary
     const salaryRes = await db.query(`
       SELECT value, date_created FROM family
       WHERE username = $1 AND $2 BETWEEN date_created AND COALESCE(date_end, 'infinity')
@@ -249,8 +222,20 @@ app.get("/", requireLogin, async (req, res) => {
     }));
 
     const totalSpent = expenses.reduce((acc, exp) => acc + exp.value, 0);
-    const remainingBudget = weeklyLimit - totalSpent;
 
+    // dif. last week
+    const prevSummaryRes = await db.query(`
+      SELECT remaining FROM weekly_summary
+      WHERE username = $1 AND period_start = $2 AND period_end = $3
+    `, [username, prevWeekStart, prevWeekEnd]);
+
+    const retificaValue = -1 * (parseFloat(prevSummaryRes.rows[0]?.remaining) || 0);
+    const showRetifica = retificaValue !== 0;
+
+    const visualSpent = totalSpent + (showRetifica ? retificaValue : 0);
+    const visualRemaining = weeklyLimit - visualSpent;
+
+    // update or insert current summary
     const summaryCheck = await db.query(`
       SELECT id FROM weekly_summary
       WHERE username = $1 AND period_start = $2 AND period_end = $3
@@ -260,22 +245,24 @@ app.get("/", requireLogin, async (req, res) => {
       await db.query(`
         INSERT INTO weekly_summary (username, period_start, period_end, weekly_limit, total_spent, remaining)
         VALUES ($1, $2, $3, $4, $5, $6)
-      `, [username, weekStart, weekEnd, weeklyLimit, totalSpent, remainingBudget]);
+      `, [username, weekStart, weekEnd, weeklyLimit, totalSpent, weeklyLimit - totalSpent]);
     } else {
       await db.query(`
         UPDATE weekly_summary
         SET weekly_limit = $1, total_spent = $2, remaining = $3
         WHERE id = $4
-      `, [weeklyLimit, totalSpent, remainingBudget, summaryCheck.rows[0].id]);
+      `, [weeklyLimit, totalSpent, weeklyLimit - totalSpent, summaryCheck.rows[0].id]);
     }
 
     res.render("index", {
       section: "home",
       expenses,
-      total: totalSpent,
+      total: visualSpent,
       limit: weeklyLimit,
-      remaining: remainingBudget,
-      weekLabel
+      remaining: visualRemaining,
+      weekLabel,
+      showRetifica,
+      retificaValue
     });
 
   } catch (err) {
@@ -283,7 +270,6 @@ app.get("/", requireLogin, async (req, res) => {
     res.status(500).send("internal error: " + err.message);
   }
 });
-
 
 // adding new weekly expense
 // ADD weekly expense

@@ -125,21 +125,26 @@ document.addEventListener("DOMContentLoaded", () => {
 function toggleLogout() {
     const btn = document.querySelector(".settings-btn");
     const form = document.querySelector(".logout-form");
-  
+
     btn.classList.toggle("active");
     form.classList.toggle("hidden");
-  }
-  
-  // Fclosing menu when clicking outside
-  document.addEventListener("click", function (event) {
+}
+
+// Fclosing menu when clicking outside
+document.addEventListener("click", function (event) {
     const dropdown = document.querySelector(".dropdown-menu");
     const btn = document.querySelector(".settings-btn");
     const form = document.querySelector(".logout-form");
-  
+
     // verify if the click was outside the dropdown and button
     if (!dropdown.contains(event.target)) {
-      btn.classList.remove("active");
-      form.classList.add("hidden");
+        btn.classList.remove("active");
+        form.classList.add("hidden");
     }
-  });
-  
+});
+
+
+//   load new page
+window.addEventListener("beforeunload", () => {
+    document.getElementById("loader").classList.remove("hidden");
+});

@@ -431,7 +431,7 @@ section#bills .line {
     background-color: gray;
     margin: 15px 20px;
 }
-section#bills .entrata-bills {
+section#bills .entrata-bills.manual-entry{
     padding: 20px 0;
 }
 
@@ -699,3 +699,26 @@ a:active {
     box-shadow: none;
     -webkit-tap-highlight-color: transparent;
 }
+
+
+/* load new page */
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(to right, #2ecc71, #27ae60);
+    animation: loading 1s infinite;
+    z-index: 9999;
+  }
+  
+  @keyframes loading {
+    0% { width: 0%; }
+    100% { width: 100%; }
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
