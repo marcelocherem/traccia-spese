@@ -6,10 +6,12 @@
   <%- include("partials/family") %>
 <% } else if (section === "bills") { %>
   <%- include("partials/bills") %>
+<% } else if (section === "savings") { %>
+  <%- include("partials/savings") %>
 <% } else if (section === "history") { %>
   <%- include("partials/history") %>
 <% } else { %>
   <%- include("partials/home") %>
 <% } %>
-  
+
 <%- include("partials/footer.ejs") %>

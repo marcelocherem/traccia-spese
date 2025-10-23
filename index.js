@@ -433,49 +433,36 @@ app.post("/delete-family/:id", requireLogin, async (req, res) => {
 // BILLS page
 app.get("/bills", requireLogin, async (req, res) => {
   const username = req.user.username;
+  const today = new Date();
+  const todayDay = today.getDate();
+  const salaryDay = 13;
 
   try {
-    const today = new Date();
-    const todayDay = today.getDate();
-    const salaryDay = 13; // futuramente virá de family
-
     const result = await db.query(
-      "SELECT id, name, value, day FROM bills WHERE username = $1",
+      "SELECT id, name, value, day FROM bills WHERE username = $1 AND savings = false",
       [username]
     );
 
     let total = 0;
     let totalDaPagare = 0;
-
     const paidBills = [];
     const unpaidBills = [];
 
     result.rows.forEach(item => {
       const value = parseFloat(item.value) || 0;
       const billDay = parseInt(item.day);
-
       const isPaid = billDay >= salaryDay && billDay <= todayDay;
 
       total += value;
       if (!isPaid) totalDaPagare += value;
 
-      const bill = {
-        ...item,
-        value,
-        isPaid
-      };
-
-      if (isPaid) {
-        paidBills.push(bill);
-      } else {
-        unpaidBills.push(bill);
-      }
+      const bill = { ...item, value, isPaid };
+      if (isPaid) paidBills.push(bill);
+      else unpaidBills.push(bill);
     });
 
-    // Ordenar cada grupo por dia crescente
     paidBills.sort((a, b) => a.day - b.day);
     unpaidBills.sort((a, b) => a.day - b.day);
-
     const bills = [...paidBills, ...unpaidBills];
 
     res.render("index", {
@@ -484,13 +471,11 @@ app.get("/bills", requireLogin, async (req, res) => {
       total,
       totalDaPagare
     });
-
   } catch (err) {
-    console.error("Error:", err.message);
-    res.status(500).send("Internal error: " + err.message);
+    console.error("Error loading bills:", err.message);
+    res.status(500).send("Internal error");
   }
 });
-
 
 
 // ADD bill
@@ -500,13 +485,13 @@ app.post("/add-bill", requireLogin, async (req, res) => {
 
   try {
     await db.query(
-      "INSERT INTO bills (name, value, day, username) VALUES ($1, $2, $3, $4)",
+      "INSERT INTO bills (name, value, day, savings, username) VALUES ($1, $2, $3, false, $4)",
       [name, parseFloat(value), parseInt(day), username]
     );
     res.redirect("/bills");
   } catch (err) {
     console.error("Error adding bill:", err.message);
-    res.status(500).send("Internal server error");
+    res.status(500).send("Internal error");
   }
 });
 
@@ -521,15 +506,16 @@ app.post("/edit-bill/:id", requireLogin, async (req, res) => {
 
   try {
     await db.query(
-      "UPDATE bills SET name = $1, value = $2, day = $3 WHERE id = $4",
+      "UPDATE bills SET name = $1, value = $2, day = $3, savings = false WHERE id = $4",
       [name, parseFloat(value), parseInt(day), id]
     );
     res.redirect("/bills");
   } catch (err) {
     console.error("Error editing bill:", err.message);
-    res.status(500).send("Internal server error");
+    res.status(500).send("Internal error");
   }
 });
+
 
 // DELETE bill
 app.post("/delete-bill/:id", requireLogin, async (req, res) => {
@@ -548,6 +534,98 @@ app.post("/delete-bill/:id", requireLogin, async (req, res) => {
   }
 });
 
+// savings
+app.get("/savings", requireLogin, async (req, res) => {
+  const username = req.user.username;
+
+  try {
+    const result = await db.query(
+      "SELECT id, name, value, day FROM bills WHERE username = $1 AND savings = true ORDER BY day ASC",
+      [username]
+    );
+
+    const bills = result.rows.map(item => ({
+      ...item,
+      value: parseFloat(item.value) || 0,
+      isPaid: true
+    }));
+
+    const total = bills.reduce((acc, item) => acc + item.value, 0);
+
+    res.render("index", {
+      section: "savings",
+      bills,
+      total,
+      totalDaPagare: 0
+    });
+  } catch (err) {
+    console.error("Error loading savings:", err.message);
+    res.status(500).send("Internal error");
+  }
+});
+
+// ADD savings
+app.post("/add-savings", requireLogin, async (req, res) => {
+  const { name, value, day } = req.body;
+  const username = req.user.username;
+
+  try {
+    await db.query(
+      "INSERT INTO bills (name, value, day, savings, username) VALUES ($1, $2, $3, true, $4)",
+      [name, parseFloat(value), parseInt(day), username]
+    );
+    res.redirect("/savings");
+  } catch (err) {
+    console.error("Error adding savings:", err.message);
+    res.status(500).send("Internal error");
+  }
+});
+
+
+// EDIT savings
+app.post("/edit-savings/:id", requireLogin, async (req, res) => {
+  const { id } = req.params;
+  const { name, value, day } = req.body;
+  const username = req.user.username;
+
+  const check = await db.query("SELECT username FROM bills WHERE id = $1", [id]);
+  if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
+
+  try {
+    await db.query(
+      "UPDATE bills SET name = $1, value = $2, day = $3, savings = true WHERE id = $4",
+      [name, parseFloat(value), parseInt(day), id]
+    );
+    res.redirect("/savings");
+  } catch (err) {
+    console.error("Error editing savings:", err.message);
+    res.status(500).send("Internal error");
+  }
+});
+
+// DELETE savings
+app.post("/delete-savings/:id", requireLogin, async (req, res) => {
+  const { id } = req.params;
+  const username = req.user.username;
+
+  try {
+    const check = await db.query("SELECT username, savings FROM bills WHERE id = $1", [id]);
+    const item = check.rows[0];
+
+    if (!item || item.username !== username || item.savings !== true) {
+      return res.status(403).send("Acesso negado.");
+    }
+
+    await db.query("DELETE FROM bills WHERE id = $1", [id]);
+    res.redirect("/savings");
+  } catch (err) {
+    console.error("Error deleting savings:", err.message);
+    res.status(500).send("Internal server error");
+  }
+});
+
+
+// history
 app.get("/history", requireLogin, async (req, res) => {
   const { from, to } = req.query;
   const username = req.user.username;

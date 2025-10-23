@@ -428,18 +428,21 @@ section .entrata .income-text {
     flex-wrap: nowrap;
 }
 
-section#bills .line {
+section#bills .line,
+section#savings .line {
     width: calc(100% - 40px);
     height: 2px;
     background-color: gray;
     margin: 15px 20px;
 }
 
-section#bills .entrata-bills.manual-entry {
+section#bills .entrata-bills.manual-entry,
+section#savings .entrata-bills.manual-entry {
     padding: 20px 0;
 }
 
-section#bills .entrata-bills .container-int {
+section#bills .entrata-bills .container-int,
+section#savings .entrata-bills .container-int {
     width: calc(100% - 40px);
     display: flex;
     justify-content: space-between;
@@ -466,7 +469,6 @@ section .entrata-bills .second-part {
     justify-content: flex-end;
     text-align: end;
     gap: 5px;
-
 }
 
 .status {
@@ -483,6 +485,7 @@ section .entrata-bills .second-part {
 }
 
 section#bills .entrata-bills.total .income-text,
+section#savings .entrata-bills.total .income-text,
 section#family .entrata-bills.total .income-text {
     width: calc(100% - 40px);
 }
