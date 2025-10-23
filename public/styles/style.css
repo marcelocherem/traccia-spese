@@ -375,7 +375,8 @@ section .total-week .infos .line td {
 section#home .entrata .income-text {
     padding: 20px 0;
     width: calc(100% - 60px);
-} 
+}
+
 /* spese e entrate */
 section .expense,
 section .entrata {
@@ -412,9 +413,11 @@ section#family .line {
     background-color: gray;
     margin: 15px 20px;
 }
+
 section .entrata-bills.total .income-text {
     padding: 20PX 0;
 }
+
 section .expense .income-text,
 section .entrata .income-text {
     display: flex;
@@ -431,14 +434,18 @@ section#bills .line {
     background-color: gray;
     margin: 15px 20px;
 }
-section#bills .entrata-bills.manual-entry{
+
+section#bills .entrata-bills.manual-entry {
     padding: 20px 0;
 }
 
-section#bills .entrata-bills.total .income-text,
-section#family .entrata-bills.total .income-text{
+section#bills .entrata-bills .container-int {
     width: calc(100% - 40px);
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem !important;
 }
+
 
 section .entrata-bills .first-part,
 section .entrata-bills .second-part {
@@ -448,26 +455,36 @@ section .entrata-bills .second-part {
 section .entrata-bills .first-part {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 5px;
 }
+
 section .entrata-bills .second-part {
     display: flex;
+    flex-direction: column;
     justify-content: flex-end;
-    margin-top: 10px;
+    text-align: end;
+    gap: 5px;
+
 }
 
-section#bills .entrata-bills .income-text {
-    width: 100%;
+.status {
+    margin-left: 10px;
+    font-weight: bold;
 }
 
-section .expense .income-text .expense-name,
-section .entrata .income-text .expense-name {
-    text-overflow: ellipsis;
+.paid {
+    color: green;
 }
 
-section .expense .income-text .expense-value,
-section .entrata .income-text .expense-value {
-    text-wrap: nowrap;
+.unpaid {
+    color: red;
+}
+
+section#bills .entrata-bills.total .income-text,
+section#family .entrata-bills.total .income-text {
+    width: calc(100% - 40px);
 }
 
 /* edit and delete btn */
@@ -477,6 +494,7 @@ section .actions {
     flex-direction: column;
     align-items: flex-end;
     justify-content: space-evenly;
+    top: 0;
     height: 100%;
     right: -20px;
     transition: right 0.3s ease;
@@ -486,11 +504,11 @@ section .actions {
     right: 5px;
 }
 
-.expense-value {
+.expense-value, .status {
     transition: margin-right 0.3s ease;
 }
 
-.entrata.active .expense-value {
+.entrata.active .expense-value, .entrata.active .status {
     margin-right: 15px;
 }
 
@@ -711,14 +729,18 @@ a:active {
     background: linear-gradient(to right, #2ecc71, #27ae60);
     animation: loading 1s infinite;
     z-index: 9999;
-  }
-  
-  @keyframes loading {
-    0% { width: 0%; }
-    100% { width: 100%; }
-  }
-  
-  .hidden {
+}
+
+@keyframes loading {
+    0% {
+        width: 0%;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+.hidden {
     display: none;
-  }
-  
+}

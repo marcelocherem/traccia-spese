@@ -2,70 +2,80 @@ import express from "express";
 import pg from "pg";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
-import session from "express-session";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 console.log("DATABASE_URL:", process.env.DATABASE_URL);
 
 const { Pool } = pg;
-
 const db = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
 const app = express();
 const port = 3000;
-// db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.use(cookieParser());
 app.set("view engine", "ejs");
-app.use(session({
-  secret: "passwordkey",
-  resave: false,
-  saveUninitialized: false,
-  rolling: true,
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
-  }
-}));
 
-// login
+const JWT_SECRET = process.env.JWT_SECRET || "jwt_secret_key";
+
+// 🔐 Middleware de protection
 function requireLogin(req, res, next) {
-  if (!req.session.userId) {
+  const token = req.cookies.token;
+  if (!token) return res.redirect("/login");
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
     return res.redirect("/login");
   }
-  next();
 }
 
-// logout
+// 🚪 Logout
 app.post("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.redirect("/login");
-  });
+  res.clearCookie("token");
+  res.redirect("/login");
 });
 
-// register area
+// 📝 register
 app.get("/register", (req, res) => {
   res.render("auth", { section: "register", error: null });
 });
 
 app.post("/register", async (req, res) => {
-  const { username, password } = req.body;
+  const { username, email, password, confirmPassword } = req.body;
+
+  if (!username || !email || !password || !confirmPassword) {
+    return res.render("auth", { section: "register", error: "Compila tutti i campi." });
+  }
+
+  if (password !== confirmPassword) {
+    return res.render("auth", { section: "register", error: "Le password non coincidono." });
+  }
+
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    await db.query("INSERT INTO users (username, password) VALUES ($1, $2)", [username, hashedPassword]);
+    await db.query(
+      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
+      [username, email, hashedPassword]
+    );
+
     res.redirect("/login");
   } catch (err) {
-    res.render("auth", { section: "register", error: "il nome utente esiste già." });
+    res.render("auth", { section: "register", error: "Il nome utente o email esiste già." });
   }
 });
 
-// login area
+
+// 🔐 Login
 app.get("/login", (req, res) => {
   res.render("auth", { section: "login", error: null });
 });
@@ -82,8 +92,14 @@ app.post("/login", async (req, res) => {
   const match = await bcrypt.compare(password, user.password);
 
   if (match) {
-    req.session.userId = user.id;
-    req.session.username = user.username;
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, {
+      expiresIn: "7d"
+    });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 24 * 7
+    });
     res.redirect("/");
   } else {
     res.render("auth", { section: "login", error: "password errata." });
@@ -93,9 +109,9 @@ app.post("/login", async (req, res) => {
 // home page
 app.get("/", requireLogin, async (req, res) => {
   try {
-    const username = req.session.username;
+    const username = req.user.username;
 
-    // this week monday to sunday
+    // Semana atual: segunda a domingo
     const today = new Date();
     const dayOfWeek = today.getDay();
     const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -110,7 +126,7 @@ app.get("/", requireLogin, async (req, res) => {
 
     const weekLabel = `${weekStart.toLocaleDateString("it-IT", { day: '2-digit', month: 'short' })} - ${weekEnd.toLocaleDateString("it-IT", { day: '2-digit', month: 'short' })}`;
 
-    // last week
+    // Semana anterior
     const prevWeekStart = new Date(weekStart);
     prevWeekStart.setDate(weekStart.getDate() - 7);
     prevWeekStart.setHours(0, 0, 0, 0);
@@ -119,75 +135,18 @@ app.get("/", requireLogin, async (req, res) => {
     prevWeekEnd.setDate(prevWeekStart.getDate() + 6);
     prevWeekEnd.setHours(23, 59, 59, 999);
 
-    // previous salary
-    const prevSalaryRes = await db.query(`
-      SELECT value, date_created FROM family
-      WHERE username = $1 AND $2 BETWEEN date_created AND COALESCE(date_end, 'infinity')
-    `, [username, prevWeekStart]);
-
-    const prevSalaryValues = prevSalaryRes.rows.map(s => parseFloat(s.value));
-    const prevTotalIncome = prevSalaryValues.length > 0
-      ? prevSalaryValues.reduce((acc, val) => acc + val, 0)
-      : 0;
-
-    const prevSalaryStartDate = prevSalaryRes.rows[0]?.date_created
-      ? new Date(prevSalaryRes.rows[0].date_created)
-      : null;
-
-    let prevTotalWeeks = 4;
-    if (prevSalaryStartDate) {
-      const year = prevSalaryStartDate.getFullYear();
-      const month = prevSalaryStartDate.getMonth();
-      const salaryEndDate = new Date(year, month + 1, 13);
-      const diffDays = Math.ceil((salaryEndDate - prevSalaryStartDate) / (1000 * 60 * 60 * 24));
-      prevTotalWeeks = Math.ceil(diffDays / 7);
-    }
-
-    const prevBillsRes = await db.query("SELECT value FROM bills WHERE username = $1", [username]);
-    const prevBillValues = prevBillsRes.rows.map(b => parseFloat(b.value));
-    const prevTotalBills = prevBillValues.length > 0
-      ? prevBillValues.reduce((acc, val) => acc + val, 0)
-      : 0;
-
-    const prevWeeklyLimit = (prevTotalIncome - prevTotalBills) / prevTotalWeeks;
-
-    const prevExpensesRes = await db.query(`
-      SELECT SUM(value) FROM weekly_expenses
-      WHERE username = $1 AND date_expense BETWEEN $2 AND $3
-    `, [username, prevWeekStart, prevWeekEnd]);
-
-    const prevTotalSpent = parseFloat(prevExpensesRes.rows[0].sum) || 0;
-    const prevRemaining = prevWeeklyLimit - prevTotalSpent;
-
-    // update or insert previous summary
-    const prevSummaryCheck = await db.query(`
-      SELECT id FROM weekly_summary
-      WHERE username = $1 AND period_start = $2 AND period_end = $3
-    `, [username, prevWeekStart, prevWeekEnd]);
-
-    if (prevSummaryCheck.rows.length === 0) {
-      await db.query(`
-        INSERT INTO weekly_summary (username, period_start, period_end, weekly_limit, total_spent, remaining)
-        VALUES ($1, $2, $3, $4, $5, $6)
-      `, [username, prevWeekStart, prevWeekEnd, prevWeeklyLimit, prevTotalSpent, prevRemaining]);
-    } else {
-      await db.query(`
-        UPDATE weekly_summary
-        SET weekly_limit = $1, total_spent = $2, remaining = $3
-        WHERE id = $4
-      `, [prevWeeklyLimit, prevTotalSpent, prevRemaining, prevSummaryCheck.rows[0].id]);
-    }
-
-    // current salary
+    // Salário ativo na semana atual
     const salaryRes = await db.query(`
       SELECT value, date_created FROM family
-      WHERE username = $1 AND $2 BETWEEN date_created AND COALESCE(date_end, 'infinity')
-    `, [username, weekStart]);
+      WHERE username = $1
+      AND date_created <= $2
+      AND (date_end IS NULL OR date_end >= $3)
+      ORDER BY date_created DESC
+      LIMIT 1
+    `, [username, weekEnd, weekStart]);
 
-    const salaryValues = salaryRes.rows.map(s => parseFloat(s.value));
-    const totalIncome = salaryValues.length > 0
-      ? salaryValues.reduce((acc, val) => acc + val, 0)
-      : 0;
+    const salaryValues = salaryRes.rows.map(s => parseFloat(s.value) || 0);
+    const totalIncome = salaryValues.reduce((acc, val) => acc + val, 0);
 
     const salaryStartDate = salaryRes.rows[0]?.date_created
       ? new Date(salaryRes.rows[0].date_created)
@@ -202,14 +161,14 @@ app.get("/", requireLogin, async (req, res) => {
       totalWeeks = Math.ceil(diffDays / 7);
     }
 
+    // Bills
     const billsRes = await db.query("SELECT value FROM bills WHERE username = $1", [username]);
-    const billValues = billsRes.rows.map(b => parseFloat(b.value));
-    const totalBills = billValues.length > 0
-      ? billValues.reduce((acc, val) => acc + val, 0)
-      : 0;
+    const billValues = billsRes.rows.map(b => parseFloat(b.value) || 0);
+    const totalBills = billValues.reduce((acc, val) => acc + val, 0);
 
     const weeklyLimit = (totalIncome - totalBills) / totalWeeks;
 
+    // Despesas da semana atual
     const expensesRes = await db.query(`
       SELECT id, name, value, date_expense FROM weekly_expenses
       WHERE username = $1 AND date_expense BETWEEN $2 AND $3
@@ -223,7 +182,7 @@ app.get("/", requireLogin, async (req, res) => {
 
     const totalSpent = expenses.reduce((acc, exp) => acc + exp.value, 0);
 
-    // dif. last week
+    // Retifica settimanale (se houver resumo da semana anterior)
     const prevSummaryRes = await db.query(`
       SELECT remaining FROM weekly_summary
       WHERE username = $1 AND period_start = $2 AND period_end = $3
@@ -234,25 +193,6 @@ app.get("/", requireLogin, async (req, res) => {
 
     const visualSpent = totalSpent + (showRetifica ? retificaValue : 0);
     const visualRemaining = weeklyLimit - visualSpent;
-
-    // update or insert current summary
-    const summaryCheck = await db.query(`
-      SELECT id FROM weekly_summary
-      WHERE username = $1 AND period_start = $2 AND period_end = $3
-    `, [username, weekStart, weekEnd]);
-
-    if (summaryCheck.rows.length === 0) {
-      await db.query(`
-        INSERT INTO weekly_summary (username, period_start, period_end, weekly_limit, total_spent, remaining)
-        VALUES ($1, $2, $3, $4, $5, $6)
-      `, [username, weekStart, weekEnd, weeklyLimit, totalSpent, weeklyLimit - totalSpent]);
-    } else {
-      await db.query(`
-        UPDATE weekly_summary
-        SET weekly_limit = $1, total_spent = $2, remaining = $3
-        WHERE id = $4
-      `, [weeklyLimit, totalSpent, weeklyLimit - totalSpent, summaryCheck.rows[0].id]);
-    }
 
     res.render("index", {
       section: "home",
@@ -271,113 +211,117 @@ app.get("/", requireLogin, async (req, res) => {
   }
 });
 
+
+// logic for update weekly summary
+async function updateWeeklySummary(username, date) {
+  const expenseDate = new Date(date);
+  const dayOfWeek = expenseDate.getDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+  const weekStart = new Date(expenseDate);
+  weekStart.setDate(expenseDate.getDate() + diffToMonday);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+
+  const salaryRes = await db.query(`
+    SELECT value, date_created FROM family
+    WHERE username = $1 AND date_created <= $2 AND (date_end IS NULL OR date_end >= $3)
+    ORDER BY date_created DESC LIMIT 1
+  `, [username, weekEnd, weekStart]);
+
+  const salaryValues = salaryRes.rows.map(s => parseFloat(s.value));
+  const totalIncome = salaryValues.reduce((acc, val) => acc + val, 0);
+
+  let totalWeeks = 4;
+  if (salaryRes.rows.length > 0) {
+    const salaryStartDate = new Date(salaryRes.rows[0].date_created);
+    const year = salaryStartDate.getFullYear();
+    const month = salaryStartDate.getMonth();
+    const salaryEndDate = new Date(year, month + 1, 13);
+    const diffDays = Math.ceil((salaryEndDate - salaryStartDate) / (1000 * 60 * 60 * 24));
+    totalWeeks = Math.ceil(diffDays / 7);
+  }
+
+  const billsRes = await db.query("SELECT value FROM bills WHERE username = $1", [username]);
+  const billValues = billsRes.rows.map(b => parseFloat(b.value));
+  const totalBills = billValues.reduce((acc, val) => acc + val, 0);
+
+  const weeklyLimit = (totalIncome - totalBills) / totalWeeks;
+
+  const expensesRes = await db.query(`
+    SELECT SUM(value) FROM weekly_expenses
+    WHERE username = $1 AND date_expense BETWEEN $2 AND $3
+  `, [username, weekStart, weekEnd]);
+
+  const totalSpent = parseFloat(expensesRes.rows[0].sum) || 0;
+  const remaining = weeklyLimit - totalSpent;
+
+  const summaryExists = await db.query(`
+    SELECT COUNT(*) FROM weekly_summary
+    WHERE username = $1 AND period_start = $2 AND period_end = $3
+  `, [username, weekStart, weekEnd]);
+
+  if (parseInt(summaryExists.rows[0].count) === 0) {
+    await db.query(`
+      INSERT INTO weekly_summary (username, period_start, period_end, weekly_limit, total_spent, remaining)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [username, weekStart, weekEnd, weeklyLimit, totalSpent, remaining]);
+  } else {
+    await db.query(`
+      UPDATE weekly_summary
+      SET weekly_limit = $1, total_spent = $2, remaining = $3
+      WHERE username = $4 AND period_start = $5 AND period_end = $6
+    `, [weeklyLimit, totalSpent, remaining, username, weekStart, weekEnd]);
+  }
+}
+
 // adding new weekly expense
 // ADD weekly expense
 app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
   const { name, value, date_expense } = req.body;
-  const username = req.session.username;
+  const username = req.user.username;
 
   try {
     const parsedValue = parseFloat(value);
     const expenseDate = new Date(date_expense);
 
-    // Insert expense
     await db.query(
       "INSERT INTO weekly_expenses (name, value, date_expense, username) VALUES ($1, $2, $3, $4)",
       [name, parsedValue, expenseDate, username]
     );
 
-    // calculate week of expense
-    const dayOfWeek = expenseDate.getDay();
-    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-
-    const weekStart = new Date(expenseDate);
-    weekStart.setDate(expenseDate.getDate() + diffToMonday);
-    weekStart.setHours(0, 0, 0, 0);
-
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
-    weekEnd.setHours(23, 59, 59, 999);
-
-    // search valid salarys from begining of the week
-    const salaryRes = await db.query(`
-      SELECT value, date_created FROM family
-      WHERE username = $1 AND $2 BETWEEN date_created AND COALESCE(date_end, 'infinity')
-    `, [username, weekStart]);
-
-    const salaryValues = salaryRes.rows.map(s => parseFloat(s.value));
-    const totalIncome = salaryValues.reduce((acc, val) => acc + val, 0);
-
-    // Calculate number of the weeks between salary date and 13th from the next month
-    let totalWeeks = 4;
-    if (salaryRes.rows.length > 0) {
-      const salaryStartDate = new Date(salaryRes.rows[0].date_created);
-      const year = salaryStartDate.getFullYear();
-      const month = salaryStartDate.getMonth();
-      const salaryEndDate = new Date(year, month + 1, 13);
-
-      const diffDays = Math.ceil((salaryEndDate - salaryStartDate) / (1000 * 60 * 60 * 24));
-      totalWeeks = Math.ceil(diffDays / 7);
-    }
-
-    // search bills
-    const billsRes = await db.query("SELECT value FROM bills WHERE username = $1", [username]);
-    const billValues = billsRes.rows.map(b => parseFloat(b.value));
-    const totalBills = billValues.reduce((acc, val) => acc + val, 0);
-
-    // Calculate weekly limit
-    const weeklyLimit = (totalIncome - totalBills) / totalWeeks;
-
-    // add up expenses from the week
-    const expensesRes = await db.query(`
-      SELECT SUM(value) FROM weekly_expenses
-      WHERE username = $1 AND date_expense BETWEEN $2 AND $3
-    `, [username, weekStart, weekEnd]);
-
-    const totalSpent = parseFloat(expensesRes.rows[0].sum) || 0;
-    const remaining = weeklyLimit - totalSpent;
-
-    // Inserrt or update weekly summary
-    const summaryExists = await db.query(`
-      SELECT COUNT(*) FROM weekly_summary
-      WHERE username = $1 AND period_start = $2 AND period_end = $3
-    `, [username, weekStart, weekEnd]);
-
-    if (parseInt(summaryExists.rows[0].count) === 0) {
-      await db.query(`
-        INSERT INTO weekly_summary (username, period_start, period_end, weekly_limit, total_spent, remaining)
-        VALUES ($1, $2, $3, $4, $5, $6)
-      `, [username, weekStart, weekEnd, weeklyLimit, totalSpent, remaining]);
-    } else {
-      await db.query(`
-        UPDATE weekly_summary
-        SET weekly_limit = $1, total_spent = $2, remaining = $3
-        WHERE username = $4 AND period_start = $5 AND period_end = $6
-      `, [weeklyLimit, totalSpent, remaining, username, weekStart, weekEnd]);
-    }
-
+    await updateWeeklySummary(username, expenseDate);
     res.redirect("/");
   } catch (err) {
-    console.error("Error:", err.message);
-    res.status(500).send("internal error" + err.message);
+    console.error("Error adding weekly expense:", err.message);
+    res.status(500).send("Internal error: " + err.message);
   }
 });
+
 
 
 // EDIT weekly expense
 app.post("/edit-weekly_expenses/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const { name, value, date_expense } = req.body;
-  const username = req.session.username;
+  const username = req.user.username;
 
   try {
     const check = await db.query("SELECT username FROM weekly_expenses WHERE id = $1", [id]);
     if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
 
+    const parsedValue = parseFloat(value);
+    const expenseDate = new Date(date_expense);
+
     await db.query(
       "UPDATE weekly_expenses SET name = $1, value = $2, date_expense = $3 WHERE id = $4",
-      [name, parseFloat(value), date_expense, id]
+      [name, parsedValue, expenseDate, id]
     );
+
+    await updateWeeklySummary(username, expenseDate);
     res.redirect("/");
   } catch (err) {
     console.error("Error editing expense:", err.message);
@@ -388,13 +332,16 @@ app.post("/edit-weekly_expenses/:id", requireLogin, async (req, res) => {
 // DELETE weekly expense
 app.post("/delete-weekly_expenses/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
-  const username = req.session.username;
+  const username = req.user.username;
 
   try {
-    const check = await db.query("SELECT username FROM weekly_expenses WHERE id = $1", [id]);
-    if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
+    const check = await db.query("SELECT username, date_expense FROM weekly_expenses WHERE id = $1", [id]);
+    const expense = check.rows[0];
+    if (!expense || expense.username !== username) return res.status(403).send("Acesso negado.");
 
     await db.query("DELETE FROM weekly_expenses WHERE id = $1", [id]);
+
+    await updateWeeklySummary(username, expense.date_expense);
     res.redirect("/");
   } catch (err) {
     console.error("Error deleting expense:", err.message);
@@ -402,9 +349,10 @@ app.post("/delete-weekly_expenses/:id", requireLogin, async (req, res) => {
   }
 });
 
+
 // FAMILY page
 app.get("/family", requireLogin, async (req, res) => {
-  const username = req.session.username;
+  const username = req.user.username;
   try {
     const result = await db.query(
       "SELECT id, name, value, date_created, date_end FROM family WHERE username = $1 ORDER BY date_created DESC",
@@ -431,7 +379,7 @@ app.get("/family", requireLogin, async (req, res) => {
 // ADD family member
 app.post("/add-family", requireLogin, async (req, res) => {
   const { name, value, date_created } = req.body;
-  const username = req.session.username;
+  const username = req.user.username;
 
   try {
     // end last salary
@@ -458,7 +406,7 @@ app.post("/add-family", requireLogin, async (req, res) => {
 app.post("/edit-family/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const { name, value, date_created } = req.body;
-  const username = req.session.username;
+  const username = req.user.username;
 
   const check = await db.query("SELECT username FROM family WHERE id = $1", [id]);
   if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
@@ -473,7 +421,7 @@ app.post("/edit-family/:id", requireLogin, async (req, res) => {
 // DELETE family member
 app.post("/delete-family/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
-  const username = req.session.username;
+  const username = req.user.username;
 
   const check = await db.query("SELECT username FROM family WHERE id = $1", [id]);
   if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
@@ -484,34 +432,71 @@ app.post("/delete-family/:id", requireLogin, async (req, res) => {
 
 // BILLS page
 app.get("/bills", requireLogin, async (req, res) => {
-  const username = req.session.username;
+  const username = req.user.username;
+
   try {
+    const today = new Date();
+    const todayDay = today.getDate();
+    const salaryDay = 13; // futuramente virá de family
+
     const result = await db.query(
-      "SELECT id, name, value, day FROM bills WHERE username = $1 ORDER BY day ASC",
+      "SELECT id, name, value, day FROM bills WHERE username = $1",
       [username]
     );
-    const bills = result.rows.map(item => ({
-      ...item,
-      value: parseFloat(item.value)
-    }));
 
-    const total = bills.reduce((acc, item) => acc + item.value, 0);
+    let total = 0;
+    let totalDaPagare = 0;
+
+    const paidBills = [];
+    const unpaidBills = [];
+
+    result.rows.forEach(item => {
+      const value = parseFloat(item.value) || 0;
+      const billDay = parseInt(item.day);
+
+      const isPaid = billDay >= salaryDay && billDay <= todayDay;
+
+      total += value;
+      if (!isPaid) totalDaPagare += value;
+
+      const bill = {
+        ...item,
+        value,
+        isPaid
+      };
+
+      if (isPaid) {
+        paidBills.push(bill);
+      } else {
+        unpaidBills.push(bill);
+      }
+    });
+
+    // Ordenar cada grupo por dia crescente
+    paidBills.sort((a, b) => a.day - b.day);
+    unpaidBills.sort((a, b) => a.day - b.day);
+
+    const bills = [...paidBills, ...unpaidBills];
 
     res.render("index", {
       section: "bills",
       bills,
-      total
+      total,
+      totalDaPagare
     });
+
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).send("Internal error: " + err.message);
   }
 });
 
+
+
 // ADD bill
 app.post("/add-bill", requireLogin, async (req, res) => {
   const { name, value, day } = req.body;
-  const username = req.session.username;
+  const username = req.user.username;
 
   try {
     await db.query(
@@ -529,7 +514,7 @@ app.post("/add-bill", requireLogin, async (req, res) => {
 app.post("/edit-bill/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const { name, value, day } = req.body;
-  const username = req.session.username;
+  const username = req.user.username;
 
   const check = await db.query("SELECT username FROM bills WHERE id = $1", [id]);
   if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
@@ -549,7 +534,7 @@ app.post("/edit-bill/:id", requireLogin, async (req, res) => {
 // DELETE bill
 app.post("/delete-bill/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
-  const username = req.session.username;
+  const username = req.user.username;
 
   const check = await db.query("SELECT username FROM bills WHERE id = $1", [id]);
   if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
@@ -565,8 +550,8 @@ app.post("/delete-bill/:id", requireLogin, async (req, res) => {
 
 app.get("/history", requireLogin, async (req, res) => {
   const { from, to } = req.query;
-  const username = req.session.username;
-  
+  const username = req.user.username;
+
   try {
     let summaries = [];
 

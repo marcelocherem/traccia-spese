@@ -6,21 +6,27 @@
 
   <% bills.forEach(item=> { %>
     <div class="entrata entrata-bills manual-entry" data-id="<%= item.id %>">
-      <div class="first-part">
-        <div class="income-text">
+      <div class="container-int">
+        <div class="first-part">
           <h2 class="expense-name">
             <%= item.name %>
           </h2>
-          <h2 class="expense-value">
-            <%= item.value.toFixed(2) %> €
+          <h2 class="pay-day">
+            Data di paga: <%= String(item.day).padStart(2, '0' ) %>
           </h2>
         </div>
         <div class="second-part">
-          <div class="pay-day">
-            Data di paga: <%= String(item.day).padStart(2, '0') %>
-          </div>
+          <h2 class="expense-value">
+            <%= item.value.toFixed(2) %> €
+          </h2>
+          <% if (item.isPaid) { %>
+            <h2 class="status paid">Pagata</h2>
+            <% } else { %>
+              <h2 class="status unpaid">Da pagare</h2>
+              <% } %>
         </div>
       </div>
+
       <div class="actions">
         <button class="edit-btn" data-id="<%= item.id %>" data-name="<%= item.name %>" data-value="<%= item.value %>"
           data-day="<%= item.day %>">
@@ -34,7 +40,7 @@
       </div>
     </div>
     <% }) %>
-
+      <!-- totale -->
       <div class="line"></div>
       <div class="entrata total entrata-bills">
         <div class="income-text">
@@ -44,6 +50,16 @@
           </h2>
         </div>
       </div>
+      <!-- da pagare -->
+      <div class="entrata total entrata-bills">
+        <div class="income-text">
+          <h2 class="expense-name">DA PAGARE</h2>
+          <h2 class="expense-value">
+            <%= totalDaPagare.toFixed(2) %> €
+          </h2>
+        </div>
+      </div>
+
       <!-- adding new bill -->
       <div class="container-plus-btn hidden">
         <div class="container">

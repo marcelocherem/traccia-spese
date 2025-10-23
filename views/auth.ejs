@@ -9,12 +9,23 @@
     <form method="POST" action="<%= section === 'login' ? '/login' : '/register' %>">
       <label for="username">Nome Utente</label>
       <input type="text" name="username" required>
-  
+    
+      <% if (section === "register") { %>
+        <label for="email">Email</label>
+        <input type="email" name="email" required>
+      <% } %>
+    
       <label for="password">Password</label>
       <input type="password" name="password" required>
-  
+    
+      <% if (section === "register") { %>
+        <label for="confirmPassword">Ripeti Password</label>
+        <input type="password" name="confirmPassword" required>
+      <% } %>
+    
       <button type="submit"><%= section === "login" ? "Entrar" : "Registrar" %></button>
     </form>
+    
   </div>
     <% if (section === "login") { %>
       <p>Non hai un account? <a href="/register">Registrati</a></p>
