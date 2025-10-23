@@ -142,7 +142,6 @@ app.get("/", requireLogin, async (req, res) => {
       AND date_created <= $2
       AND (date_end IS NULL OR date_end >= $3)
       ORDER BY date_created DESC
-      LIMIT 1
     `, [username, weekEnd, weekStart]);
 
     const salaryValues = salaryRes.rows.map(s => parseFloat(s.value) || 0);
@@ -204,6 +203,7 @@ app.get("/", requireLogin, async (req, res) => {
       showRetifica,
       retificaValue
     });
+  
 
   } catch (err) {
     console.error("Error:", err.message);
@@ -296,7 +296,7 @@ app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
     await updateWeeklySummary(username, expenseDate);
     res.redirect("/");
   } catch (err) {
-    console.error("Error adding weekly expense:", err.message);
+    console.error("Error adding weekly expense:", err);
     res.status(500).send("Internal error: " + err.message);
   }
 });

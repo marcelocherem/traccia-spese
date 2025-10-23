@@ -1,0 +1,20 @@
+/* Tema claro */
+body.light {
+    background-color: #ffffff;
+    color: #000000;
+  }
+  
+  /* Tema escuro */
+  body.dark {
+    background-color: #121212;
+    color: #f0f0f0;
+  }
+  
+  /* Elementos específicos */
+  .light .card {
+    background-color: #f9f9f9;
+  }
+  .dark .card {
+    background-color: #1e1e1e;
+  }
+  
