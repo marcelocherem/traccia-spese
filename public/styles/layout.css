@@ -1,0 +1,67 @@
+.fullContainer {
+    width: 450px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+@media (max-width: 450px) {
+    .fullContainer {
+        width: 100%;
+    }
+}
+
+main {
+    flex: 1;
+    overflow: scroll;
+    background-color: #F0F1F3;
+}
+
+main section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+}
+
+section .title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(100% - 40px);
+    margin: 10px 20px;
+}
+
+section .title .title-name {
+    font-family: "roboto", sans-serif;
+    font-weight: 500;
+}
+
+section .title .plus-btn {
+    position: relative;
+    width: 35px;
+    height: 35px;
+    background-color: #FD673C;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+section .title .plus-btn::before,
+section .title .plus-btn::after {
+    content: "";
+    position: absolute;
+    background-color: white;
+    width: 4px;
+    height: 24px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+section .title .plus-btn::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+}

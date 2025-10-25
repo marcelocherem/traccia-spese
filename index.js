@@ -181,13 +181,19 @@ app.get("/", requireLogin, async (req, res) => {
 
     const totalSpent = expenses.reduce((acc, exp) => acc + exp.value, 0);
 
-    // Retifica settimanale (se houver resumo da semana anterior)
+    // Retifica settimanale (calculada dinamicamente)
     const prevSummaryRes = await db.query(`
-      SELECT remaining FROM weekly_summary
+      SELECT weekly_limit, total_spent
+      FROM weekly_summary
       WHERE username = $1 AND period_start = $2 AND period_end = $3
     `, [username, prevWeekStart, prevWeekEnd]);
 
-    const retificaValue = -1 * (parseFloat(prevSummaryRes.rows[0]?.remaining) || 0);
+    const prevSummary = prevSummaryRes.rows[0];
+    const prevRemaining = prevSummary
+      ? parseFloat(prevSummary.weekly_limit) - parseFloat(prevSummary.total_spent)
+      : 0;
+
+    const retificaValue = -1 * prevRemaining;
     const showRetifica = retificaValue !== 0;
 
     const visualSpent = totalSpent + (showRetifica ? retificaValue : 0);
@@ -203,13 +209,13 @@ app.get("/", requireLogin, async (req, res) => {
       showRetifica,
       retificaValue
     });
-  
 
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).send("internal error: " + err.message);
   }
 });
+
 
 
 // logic for update weekly summary
@@ -266,15 +272,15 @@ async function updateWeeklySummary(username, date) {
 
   if (parseInt(summaryExists.rows[0].count) === 0) {
     await db.query(`
-      INSERT INTO weekly_summary (username, period_start, period_end, weekly_limit, total_spent, remaining)
+      INSERT INTO weekly_summary (username, period_start, period_end, weekly_limit, total_spent)
       VALUES ($1, $2, $3, $4, $5, $6)
-    `, [username, weekStart, weekEnd, weeklyLimit, totalSpent, remaining]);
+    `, [username, weekStart, weekEnd, weeklyLimit, totalSpent]);
   } else {
     await db.query(`
       UPDATE weekly_summary
-      SET weekly_limit = $1, total_spent = $2, remaining = $3
+      SET weekly_limit = $1, total_spent = $2
       WHERE username = $4 AND period_start = $5 AND period_end = $6
-    `, [weeklyLimit, totalSpent, remaining, username, weekStart, weekEnd]);
+    `, [weeklyLimit, totalSpent, username, weekStart, weekEnd]);
   }
 }
 
@@ -641,19 +647,48 @@ app.get("/history", requireLogin, async (req, res) => {
       toDate.setHours(23, 59, 59, 999);
 
       const result = await db.query(`
-        SELECT period_start, period_end, weekly_limit, total_spent, remaining
+        SELECT period_start, period_end, weekly_limit, total_spent
         FROM weekly_summary
         WHERE username = $1 AND period_start BETWEEN $2 AND $3
         ORDER BY period_start DESC
       `, [username, fromDate, toDate]);
 
-      summaries = result.rows.map(row => ({
-        ...row,
-        weekly_limit: parseFloat(row.weekly_limit),
-        total_spent: parseFloat(row.total_spent),
-        remaining: parseFloat(row.remaining),
-        label: `${new Date(row.period_start).toLocaleDateString("it-IT")} – ${new Date(row.period_end).toLocaleDateString("it-IT")}`
-      }));
+      summaries = result.rows.map(row => {
+        const weekly_limit = parseFloat(row.weekly_limit);
+        const total_spent = parseFloat(row.total_spent);
+        const remaining = weekly_limit - total_spent;
+
+        return {
+          ...row,
+          weekly_limit,
+          total_spent,
+          remaining,
+          label: `${new Date(row.period_start).toLocaleDateString("it-IT")} – ${new Date(row.period_end).toLocaleDateString("it-IT")}`
+        };
+      });
+
+    } else {
+      // ✅ Consulta completa sem filtro de data
+      const result = await db.query(`
+        SELECT period_start, period_end, weekly_limit, total_spent
+        FROM weekly_summary
+        WHERE username = $1
+        ORDER BY period_start DESC
+      `, [username]);
+
+      summaries = result.rows.map(row => {
+        const weekly_limit = parseFloat(row.weekly_limit);
+        const total_spent = parseFloat(row.total_spent);
+        const remaining = weekly_limit - total_spent;
+
+        return {
+          ...row,
+          weekly_limit,
+          total_spent,
+          remaining,
+          label: `${new Date(row.period_start).toLocaleDateString("it-IT")} – ${new Date(row.period_end).toLocaleDateString("it-IT")}`
+        };
+      });
     }
 
     res.render("index", {
@@ -667,6 +702,7 @@ app.get("/history", requireLogin, async (req, res) => {
     res.status(500).send("internal error: " + err.message);
   }
 });
+
 
 // return for terminal
 app.listen(port, () => {

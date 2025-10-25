@@ -154,3 +154,15 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("loader").classList.remove("hidden");
   });
   
+  //set today date on input field with id "from"
+  document.addEventListener("DOMContentLoaded", () => {
+    const today = new Date().toISOString().split("T")[0];
+  
+    const fromInput = document.getElementById("from");
+    const toInput = document.getElementById("to");
+  
+    if (fromInput) fromInput.value = today;
+    if (toInput) toInput.value = today;
+  });
+  
+  
