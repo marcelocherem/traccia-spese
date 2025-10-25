@@ -25,7 +25,7 @@ app.set("view engine", "ejs");
 
 const JWT_SECRET = process.env.JWT_SECRET || "jwt_secret_key";
 
-// 🔐 Middleware de protection
+// 🔐 Middleware for protection
 function requireLogin(req, res, next) {
   const token = req.cookies.token;
   if (!token) return res.redirect("/login");
@@ -111,7 +111,7 @@ app.get("/", requireLogin, async (req, res) => {
   try {
     const username = req.user.username;
 
-    // Semana atual: segunda a domingo
+    // actual week (monday to sunday)
     const today = new Date();
     const dayOfWeek = today.getDay();
     const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -126,7 +126,7 @@ app.get("/", requireLogin, async (req, res) => {
 
     const weekLabel = `${weekStart.toLocaleDateString("it-IT", { day: '2-digit', month: 'short' })} - ${weekEnd.toLocaleDateString("it-IT", { day: '2-digit', month: 'short' })}`;
 
-    // Semana anterior
+    // last week
     const prevWeekStart = new Date(weekStart);
     prevWeekStart.setDate(weekStart.getDate() - 7);
     prevWeekStart.setHours(0, 0, 0, 0);
@@ -135,7 +135,7 @@ app.get("/", requireLogin, async (req, res) => {
     prevWeekEnd.setDate(prevWeekStart.getDate() + 6);
     prevWeekEnd.setHours(23, 59, 59, 999);
 
-    // Salário ativo na semana atual
+    // active salary in that week
     const salaryRes = await db.query(`
       SELECT value, date_created FROM family
       WHERE username = $1
@@ -167,11 +167,11 @@ app.get("/", requireLogin, async (req, res) => {
 
     const weeklyLimit = (totalIncome - totalBills) / totalWeeks;
 
-    // Despesas da semana atual
+    // expenses from actual week
     const expensesRes = await db.query(`
       SELECT id, name, value, date_expense FROM weekly_expenses
       WHERE username = $1 AND date_expense BETWEEN $2 AND $3
-      ORDER BY date_expense DESC
+      ORDER BY id DESC
     `, [username, weekStart, weekEnd]);
 
     const expenses = expensesRes.rows.map(exp => ({
@@ -181,7 +181,7 @@ app.get("/", requireLogin, async (req, res) => {
 
     const totalSpent = expenses.reduce((acc, exp) => acc + exp.value, 0);
 
-    // Retifica settimanale (calculada dinamicamente)
+    // Retifica settimanale
     const prevSummaryRes = await db.query(`
       SELECT weekly_limit, total_spent
       FROM weekly_summary
@@ -215,8 +215,6 @@ app.get("/", requireLogin, async (req, res) => {
     res.status(500).send("internal error: " + err.message);
   }
 });
-
-
 
 // logic for update weekly summary
 async function updateWeeklySummary(username, date) {
@@ -263,7 +261,6 @@ async function updateWeeklySummary(username, date) {
   `, [username, weekStart, weekEnd]);
 
   const totalSpent = parseFloat(expensesRes.rows[0].sum) || 0;
-  const remaining = weeklyLimit - totalSpent;
 
   const summaryExists = await db.query(`
     SELECT COUNT(*) FROM weekly_summary
@@ -273,13 +270,13 @@ async function updateWeeklySummary(username, date) {
   if (parseInt(summaryExists.rows[0].count) === 0) {
     await db.query(`
       INSERT INTO weekly_summary (username, period_start, period_end, weekly_limit, total_spent)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5)
     `, [username, weekStart, weekEnd, weeklyLimit, totalSpent]);
   } else {
     await db.query(`
       UPDATE weekly_summary
       SET weekly_limit = $1, total_spent = $2
-      WHERE username = $4 AND period_start = $5 AND period_end = $6
+      WHERE username = $3 AND period_start = $4 AND period_end = $5
     `, [weeklyLimit, totalSpent, username, weekStart, weekEnd]);
   }
 }
@@ -307,8 +304,6 @@ app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
   }
 });
 
-
-
 // EDIT weekly expense
 app.post("/edit-weekly_expenses/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
@@ -317,7 +312,7 @@ app.post("/edit-weekly_expenses/:id", requireLogin, async (req, res) => {
 
   try {
     const check = await db.query("SELECT username FROM weekly_expenses WHERE id = $1", [id]);
-    if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
+    if (check.rows[0]?.username !== username) return res.status(403).send("Accesso negato.");
 
     const parsedValue = parseFloat(value);
     const expenseDate = new Date(date_expense);
@@ -343,7 +338,7 @@ app.post("/delete-weekly_expenses/:id", requireLogin, async (req, res) => {
   try {
     const check = await db.query("SELECT username, date_expense FROM weekly_expenses WHERE id = $1", [id]);
     const expense = check.rows[0];
-    if (!expense || expense.username !== username) return res.status(403).send("Acesso negado.");
+    if (!expense || expense.username !== username) return res.status(403).send("Accesso negato.");
 
     await db.query("DELETE FROM weekly_expenses WHERE id = $1", [id]);
 
@@ -415,7 +410,7 @@ app.post("/edit-family/:id", requireLogin, async (req, res) => {
   const username = req.user.username;
 
   const check = await db.query("SELECT username FROM family WHERE id = $1", [id]);
-  if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
+  if (check.rows[0]?.username !== username) return res.status(403).send("Accesso negato.");
 
   await db.query(
     "UPDATE family SET name = $1, value = $2, date_created = $3 WHERE id = $4",
@@ -430,7 +425,7 @@ app.post("/delete-family/:id", requireLogin, async (req, res) => {
   const username = req.user.username;
 
   const check = await db.query("SELECT username FROM family WHERE id = $1", [id]);
-  if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
+  if (check.rows[0]?.username !== username) return res.status(403).send("Accesso negato.");
 
   await db.query("DELETE FROM family WHERE id = $1", [id]);
   res.redirect("/family");
@@ -508,7 +503,7 @@ app.post("/edit-bill/:id", requireLogin, async (req, res) => {
   const username = req.user.username;
 
   const check = await db.query("SELECT username FROM bills WHERE id = $1", [id]);
-  if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
+  if (check.rows[0]?.username !== username) return res.status(403).send("Accesso negato.");
 
   try {
     await db.query(
@@ -529,7 +524,7 @@ app.post("/delete-bill/:id", requireLogin, async (req, res) => {
   const username = req.user.username;
 
   const check = await db.query("SELECT username FROM bills WHERE id = $1", [id]);
-  if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
+  if (check.rows[0]?.username !== username) return res.status(403).send("Accesso negato.");
 
   try {
     await db.query("DELETE FROM bills WHERE id = $1", [id]);
@@ -595,7 +590,7 @@ app.post("/edit-savings/:id", requireLogin, async (req, res) => {
   const username = req.user.username;
 
   const check = await db.query("SELECT username FROM bills WHERE id = $1", [id]);
-  if (check.rows[0]?.username !== username) return res.status(403).send("Acesso negado.");
+  if (check.rows[0]?.username !== username) return res.status(403).send("Accesso negato.");
 
   try {
     await db.query(
@@ -619,7 +614,7 @@ app.post("/delete-savings/:id", requireLogin, async (req, res) => {
     const item = check.rows[0];
 
     if (!item || item.username !== username || item.savings !== true) {
-      return res.status(403).send("Acesso negado.");
+      return res.status(403).send("Accesso negato.");
     }
 
     await db.query("DELETE FROM bills WHERE id = $1", [id]);
@@ -668,7 +663,6 @@ app.get("/history", requireLogin, async (req, res) => {
       });
 
     } else {
-      // ✅ Consulta completa sem filtro de data
       const result = await db.query(`
         SELECT period_start, period_end, weekly_limit, total_spent
         FROM weekly_summary
@@ -702,7 +696,6 @@ app.get("/history", requireLogin, async (req, res) => {
     res.status(500).send("internal error: " + err.message);
   }
 });
-
 
 // return for terminal
 app.listen(port, () => {

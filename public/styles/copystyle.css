@@ -376,14 +376,14 @@ section .total-week .infos .line td {
     padding: 0 !important;
 }
 
-section#home .entrata .income-text {
+section#home .entry .income-text {
     padding: 20px 0;
     width: calc(100% - 60px);
 }
 
 /* spese e entrate */
 section .expense,
-section .entrata {
+section .entry {
     position: relative;
     width: calc(100% - 40px);
     background-color: #FFF;
@@ -396,7 +396,7 @@ section .entrata {
 }
 
 section .expense .icon-circle,
-section .entrata .icon-circle {
+section .entry .icon-circle {
     width: 35px;
     height: 35px;
     border-radius: 50%;
@@ -407,7 +407,7 @@ section .entrata .icon-circle {
     margin: 15px 20px 15px 0;
 }
 
-section .entrata .icon-circle .icon {
+section .entry .icon-circle .icon {
     filter: brightness(0) invert(1);
 }
 
@@ -418,12 +418,12 @@ section#family .line {
     margin: 15px 20px;
 }
 
-section .entrata-bills.total .income-text {
+section .entry-bills.total .income-text {
     padding: 20px 0;
 }
 
 section .expense .income-text,
-section .entrata .income-text {
+section .entry .income-text {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -440,13 +440,13 @@ section#savings .line {
     margin: 15px 20px;
 }
 
-section#bills .entrata-bills.manual-entry,
-section#savings .entrata-bills.manual-entry {
+section#bills .entry-bills.manual-entry,
+section#savings .entry-bills.manual-entry {
     padding: 20px 0;
 }
 
-section#bills .entrata-bills .container-int,
-section#savings .entrata-bills .container-int {
+section#bills .entry-bills .container-int,
+section#savings .entry-bills .container-int {
     width: calc(100% - 40px);
     display: flex;
     justify-content: space-between;
@@ -454,12 +454,12 @@ section#savings .entrata-bills .container-int {
 }
 
 
-section .entrata-bills .first-part,
-section .entrata-bills .second-part {
+section .entry-bills .first-part,
+section .entry-bills .second-part {
     width: calc(100% - 40px);
 }
 
-section .entrata-bills .first-part {
+section .entry-bills .first-part {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -467,7 +467,7 @@ section .entrata-bills .first-part {
     gap: 5px;
 }
 
-section .entrata-bills .second-part {
+section .entry-bills .second-part {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -488,9 +488,9 @@ section .entrata-bills .second-part {
     color: red;
 }
 
-section#bills .entrata-bills.total .income-text,
-section#savings .entrata-bills.total .income-text,
-section#family .entrata-bills.total .income-text {
+section#bills .entry-bills.total .income-text,
+section#savings .entry-bills.total .income-text,
+section#family .entry-bills.total .income-text {
     width: calc(100% - 40px);
 }
 
@@ -507,7 +507,7 @@ section .actions {
     transition: right 0.3s ease;
 }
 
-.entrata.active .actions {
+.entry.active .actions {
     right: 5px;
 }
 
@@ -515,7 +515,7 @@ section .actions {
     transition: margin-right 0.3s ease;
 }
 
-.entrata.active .expense-value, .entrata.active .status {
+.entry.active .expense-value, .entry.active .status {
     margin-right: 15px;
 }
 

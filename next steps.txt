@@ -1,5 +1,0 @@
-style for history page: add date
-change date to date: defined by user
-better icon quality
-add in "spese fisse" if paid or not with automatic option (if not paid, add number in footer icon)
-add dark option
