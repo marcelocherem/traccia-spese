@@ -628,74 +628,40 @@ app.post("/delete-savings/:id", requireLogin, async (req, res) => {
 
 // history
 app.get("/history", requireLogin, async (req, res) => {
-  const { from, to } = req.query;
   const username = req.user.username;
 
   try {
-    let summaries = [];
+    const result = await db.query(`
+      SELECT period_start, period_end, weekly_limit, total_spent
+      FROM weekly_summary
+      WHERE username = $1
+      ORDER BY period_start DESC
+    `, [username]);
 
-    if (from && to) {
-      const fromDate = new Date(from);
-      fromDate.setHours(0, 0, 0, 0);
+    const summaries = result.rows.map(row => {
+      const weekly_limit = parseFloat(row.weekly_limit);
+      const total_spent = parseFloat(row.total_spent);
+      const remaining = weekly_limit - total_spent;
 
-      const toDate = new Date(to);
-      toDate.setHours(23, 59, 59, 999);
-
-      const result = await db.query(`
-        SELECT period_start, period_end, weekly_limit, total_spent
-        FROM weekly_summary
-        WHERE username = $1 AND period_start BETWEEN $2 AND $3
-        ORDER BY period_start DESC
-      `, [username, fromDate, toDate]);
-
-      summaries = result.rows.map(row => {
-        const weekly_limit = parseFloat(row.weekly_limit);
-        const total_spent = parseFloat(row.total_spent);
-        const remaining = weekly_limit - total_spent;
-
-        return {
-          ...row,
-          weekly_limit,
-          total_spent,
-          remaining,
-          label: `${new Date(row.period_start).toLocaleDateString("it-IT")} – ${new Date(row.period_end).toLocaleDateString("it-IT")}`
-        };
-      });
-
-    } else {
-      const result = await db.query(`
-        SELECT period_start, period_end, weekly_limit, total_spent
-        FROM weekly_summary
-        WHERE username = $1
-        ORDER BY period_start DESC
-      `, [username]);
-
-      summaries = result.rows.map(row => {
-        const weekly_limit = parseFloat(row.weekly_limit);
-        const total_spent = parseFloat(row.total_spent);
-        const remaining = weekly_limit - total_spent;
-
-        return {
-          ...row,
-          weekly_limit,
-          total_spent,
-          remaining,
-          label: `${new Date(row.period_start).toLocaleDateString("it-IT")} – ${new Date(row.period_end).toLocaleDateString("it-IT")}`
-        };
-      });
-    }
+      return {
+        ...row,
+        weekly_limit,
+        total_spent,
+        remaining,
+        label: `${new Date(row.period_start).toLocaleDateString("it-IT")} – ${new Date(row.period_end).toLocaleDateString("it-IT")}`
+      };
+    });
 
     res.render("index", {
       section: "history",
-      summaries,
-      from,
-      to
+      summaries
     });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).send("internal error: " + err.message);
   }
 });
+
 
 // return for terminal
 app.listen(port, () => {

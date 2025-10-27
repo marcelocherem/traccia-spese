@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!input.value) input.value = today;
   });
 
-
   // open/close add form
   const addBtn = sectionEl.querySelector(".new-spese");
   const addOuter = sectionEl.querySelector(".container-plus-btn");

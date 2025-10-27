@@ -62,7 +62,7 @@ section#home .entry .income-text {
     width: calc(100% - 60px);
 }
 
-/* spese e entrate */
+/* expense and entry */
 section .expense,
 section .entry {
     position: relative;
@@ -232,7 +232,7 @@ section .actions img {
 }
 
 
-/* risparmi */
+/* savings */
 section .savings {
     width: calc(100% - 40px);
     background-color: #FFF;
