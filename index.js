@@ -452,15 +452,23 @@ app.get("/bills", requireLogin, async (req, res) => {
     result.rows.forEach(item => {
       const value = parseFloat(item.value) || 0;
       const billDay = parseInt(item.day);
-      const isPaid = billDay >= salaryDay && billDay <= salaryDay;
-
+    
+      let isPaid = false;
+    
+      if (todayDay >= salaryDay) {
+        isPaid = billDay >= salaryDay && billDay <= todayDay;
+      } else {
+        isPaid = (billDay >= salaryDay) || (billDay <= todayDay);
+      }
+    
       total += value;
       if (!isPaid) totalDaPagare += value;
-
+    
       const bill = { ...item, value, isPaid };
       if (isPaid) paidBills.push(bill);
       else unpaidBills.push(bill);
     });
+    
 
     paidBills.sort((a, b) => a.day - b.day);
     unpaidBills.sort((a, b) => a.day - b.day);
