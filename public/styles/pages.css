@@ -13,6 +13,7 @@ section .total-week {
 
 section .total-week .daysWeek {
     margin: 10px 0;
+    font-size: 1.5rem;
 }
 
 section .total-week .infos {
