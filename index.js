@@ -233,7 +233,7 @@ async function updateWeeklySummary(username, date) {
   const salaryRes = await db.query(`
     SELECT value, date_created FROM family
     WHERE username = $1 AND date_created <= $2 AND (date_end IS NULL OR date_end >= $3)
-    ORDER BY date_created DESC LIMIT 1
+    ORDER BY date_created DESC
   `, [username, weekEnd, weekStart]);
 
   const salaryValues = salaryRes.rows.map(s => parseFloat(s.value));
