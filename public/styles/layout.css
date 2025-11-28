@@ -16,7 +16,12 @@ main {
     flex: 1;
     overflow: scroll;
     background-color: #F0F1F3;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+main::-webkit-scrollbar {
+    display: none;
+  }
 
 main section {
     width: 100%;
