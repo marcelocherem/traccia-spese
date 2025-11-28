@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Detect witch section is active
+  // Detect which section is active
   const sectionEl =
     document.querySelector("#home") ||
-    document.querySelector("#family") ||
+    document.querySelector("#incomes") ||
     document.querySelector("#bills") ||
     document.querySelector("#savings");
   if (!sectionEl) return;
@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fill in today's date in the date field (if it exists and is empty)
   const dateInputs = document.querySelectorAll(`${selector} input[type="date"]`);
   const today = new Date().toISOString().split("T")[0];
-
   dateInputs.forEach(input => {
     if (!input.value) input.value = today;
   });
@@ -31,22 +30,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const editOuter = document.querySelector(`${selector} .container-edit-btn`);
   const editInner = editOuter?.querySelector(".container");
 
-  // select the form accordin to the section
+  // select the form according to the section
   const editForm =
     sectionId === "bills" || sectionId === "savings"
       ? document.getElementById("edit-bill-form")
-      : sectionId === "family"
-        ? document.getElementById("edit-family-form")
+      : sectionId === "incomes"
+        ? document.getElementById("edit-incomes-form")
         : document.getElementById("edit-weekly-form");
 
+  // handle edit buttons
   document.querySelectorAll(`${selector} .edit-btn`).forEach(button => {
     button.addEventListener("click", event => {
       event.stopPropagation();
 
       const id = button.dataset.id;
-      const name = button.dataset.name;
-      const value = button.dataset.value;
-
       if (!editForm) return;
 
       // Define the edition route
@@ -55,22 +52,32 @@ document.addEventListener("DOMContentLoaded", () => {
           ? `/edit-bill/${id}`
           : sectionId === "savings"
             ? `/edit-savings/${id}`
-            : sectionId === "family"
-              ? `/edit-family/${id}`
+            : sectionId === "incomes"
+              ? `/edit-incomes/${id}`
               : `/edit-weekly_expenses/${id}`;
 
-      // Fill the form fields
-      document.getElementById("edit-name").value = name;
-      document.getElementById("edit-value").value = value;
-
+      // Fill the form fields depending on section
       if (sectionId === "bills" || sectionId === "savings") {
-        document.getElementById("edit-day").value = button.dataset.day;
+        document.getElementById("edit-name").value = button.dataset.name || "";
+        document.getElementById("edit-value").value = button.dataset.value || "";
+        document.getElementById("edit-day").value = button.dataset.day || "";
+      } else if (sectionId === "incomes") {
+        document.getElementById("edit-name").value = button.dataset.name || "";
+        document.getElementById("edit-value").value = button.dataset.value || "";
+
+        // date must be yyyy-mm-dd
+        const dateField = document.getElementById("edit-date");
+        if (dateField) dateField.value = button.dataset.date || "";
+
+        // tipo e stato
+        const typeField = document.getElementById("edit-type");
+        if (typeField) typeField.value = button.dataset.type || "";
       } else {
-        const dateField =
-          sectionId === "family"
-            ? document.querySelector("#edit-family-form input[name='date_created']")
-            : document.getElementById("edit-date");
-        if (dateField) dateField.value = button.dataset.date;
+        // weekly expenses
+        document.getElementById("edit-name").value = button.dataset.name || "";
+        document.getElementById("edit-value").value = button.dataset.value || "";
+        const dateField = document.getElementById("edit-date");
+        if (dateField) dateField.value = button.dataset.date || "";
       }
 
       editOuter?.classList.remove("hidden");
@@ -103,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // close forms and remove highlight when clicked outside
   document.addEventListener("click", event => {
-    // close edition form
+    // close add form
     if (addOuter && addInner && addBtn) {
       const clickedInsideAdd = addInner.contains(event.target) || addBtn.contains(event.target);
       if (!clickedInsideAdd && !addOuter.classList.contains("hidden")) {
@@ -111,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // close edition form
+    // close edit form
     if (editOuter && editInner) {
       const clickedInsideEdit = editInner.contains(event.target) || event.target.closest(".edit-btn");
       if (!clickedInsideEdit && !editOuter.classList.contains("hidden")) {
@@ -154,4 +161,3 @@ document.addEventListener("click", function (event) {
 window.addEventListener("beforeunload", () => {
   document.getElementById("loader").classList.remove("hidden");
 });
-

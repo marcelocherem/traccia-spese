@@ -93,7 +93,7 @@ section .entry .icon-circle .icon {
     filter: brightness(0) invert(1);
 }
 
-section#family .line {
+section#incomes .line {
     width: calc(100% - 40px);
     height: 2px;
     background-color: gray;
@@ -185,8 +185,17 @@ section .entry-bills .second-part {
 
 section#bills .entry-bills.total .income-text,
 section#savings .entry-bills.total .income-text,
-section#family .entry-bills.total .income-text {
+section#incomes .entry-bills.total .income-text {
     width: calc(100% - 40px);
+}
+.cycle-block {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+    padding: 10px 0;
 }
 
 /* edit and delete btn */
@@ -303,23 +312,25 @@ section .savings .income-text {
     background-color: white;
 }
 
-.container-plus-btn .container .form-family,
-.container-edit-btn .container .form-family {
+.container-plus-btn .container .form-incomes,
+.container-edit-btn .container .form-incomes {
     display: flex;
     flex-direction: column;
     padding: 20px;
 }
 
-.container-plus-btn .container .form-family input,
-.container-edit-btn .container .form-family input {
+.container-plus-btn .container .form-incomes input,
+.container-edit-btn .container .form-incomes input,
+.container-plus-btn .container .form-incomes select {
     margin-bottom: 15px;
     padding: 10px;
     border: none;
     border-bottom: 2px solid gray;
 }
 
-.container-plus-btn .container .form-family input:focus,
-.container-edit-btn .container .form-family input:focus {
+.container-plus-btn .container .form-incomes input:focus,
+.container-edit-btn .container .form-incomes input:focus,
+.container-plus-btn .container .form-incomes select:focus{
     outline: none;
 }
 
@@ -333,8 +344,8 @@ section .savings .income-text {
     width: 48%;
 }
 
-.container-plus-btn .container .form-family button,
-.container-edit-btn .container .form-family button {
+.container-plus-btn .container .form-incomes button,
+.container-edit-btn .container .form-incomes button {
     height: 60px;
     font-size: 1.3rem;
     border: none;
@@ -345,8 +356,8 @@ section .savings .income-text {
 
 }
 
-.container-plus-btn .container .form-family button:hover,
-.container-edit-btn .container .form-family button:hover {
+.container-plus-btn .container .form-incomes button:hover,
+.container-edit-btn .container .form-incomes button:hover {
     background-color: #FC673A;
 }
 
