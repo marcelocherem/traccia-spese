@@ -36,19 +36,8 @@ main section {
     margin-bottom: 22px;
 }
 
-.balance {
-    width: calc(100% - 80px);
-    display: flex;
-    flex-direction: column;
-    margin-top: 30px;
-}
-
-.balance .balance-value {
-    font-size: 3rem;
-}
-
 .title {
-    width: calc(100% - 80px);
+    width: calc(100% - 50px);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -58,13 +47,13 @@ main section {
 .title .title-name {
     font-family: "roboto", sans-serif;
     font-weight: 500;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
 }
 
 .title .plus-btn {
     position: relative;
-    width: 35px;
-    height: 35px;
+    width: 30px;
+    height: 30px;
     background-color: #62BA8C;
     border: none;
     border-radius: 50%;
@@ -80,8 +69,8 @@ main section {
     content: "";
     position: absolute;
     background-color: white;
-    width: 4px;
-    height: 24px;
+    width: 3px;
+    height: 12px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);

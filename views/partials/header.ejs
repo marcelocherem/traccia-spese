@@ -2,13 +2,11 @@
   <div class="fullContainer">
     <header class="<%= section %>">
       <div class="int-header">
-        <% if (section !== "settings") { %>
           <div class="header-btn dropdown-menu">
             <a href="/settings" class="settings-btn" onclick="toggleLogout()">
               <img class="gear-icon" src="/images/settings.svg" alt="">
             </a>
           </div>
-        <% } %>
         <% const pageNames={ home: "Traccia Spese" , incomes: "Entrate" , bills: "Spese Fisse" , savings: "Risparmi" ,
           history: "Storico" , settings: "Impostazioni" }; %>
           <h1 class="name">

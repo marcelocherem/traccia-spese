@@ -9,12 +9,12 @@ header {
 }
 
 header .int-header {
-    width: calc(100% - 40px);
-    height: 100px;
+    width: 100%;
+    height: 45px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 0 20px;
+    margin: 0 10px;
 }
 
 header .name {
@@ -24,8 +24,8 @@ header .name {
 }
 
 header .header-btn {
-    width: 40px;
-    height: 40px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -37,8 +37,8 @@ header .settings-btn {
     align-items: center;
     background-color: transparent;
     border: none;
-    width: 40px;
-    height: 40px;
+    width: 24px;
+    height: 24px;
     cursor: pointer;
     position: relative;
     transition: transform 0.3s ease;
@@ -46,8 +46,8 @@ header .settings-btn {
 }
 
 header .gear-icon, header .bell-icon {
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
 }
 
 
@@ -158,15 +158,10 @@ header .border2 .border-int {
     border-radius: 0 100% 0 0;
 }
 
-
-
-
-
-
 /* footer */
 footer {
     width: 450px;
-    height: 60px;
+    height: 45px;
     background-color: #fff;
     display: flex;
     align-items: center;
@@ -188,12 +183,26 @@ footer .nav-list {
     align-items: center;
 }
 
-footer .nav-list li a{
+footer .nav-list li a {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     text-decoration: none;
+    position: relative;
+}
+footer .nav-list li a .background {
+    position: absolute;
+    width: 48px;
+    height: 3px;
+    bottom: -7px;
+    border-radius: 3px;
+    background-color: #62BA8C;
+    z-index: -1;
+    display: none;
+}
+footer .nav-list li a .active-background {
+    display: block;
 }
 
 footer .nav-list li a h4{
@@ -222,7 +231,7 @@ footer .nav-list .btn-icon:focus {
 }
 
 footer .nav-list .btn-icon img {
-    width: 30px;
+    width: 24px;
 }
 
 footer .nav-list .btn-icon.home {
