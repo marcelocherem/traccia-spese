@@ -33,7 +33,11 @@
   <!-- expenses list -->
   <div class="cycle-block">
     <% expenses.forEach(item=> { %>
-      <div class="entry entry-bills">
+      <div class="entry entry-bills"
+     data-id="<%= item.id %>"
+     data-name="<%= item.name %>"
+     data-value="<%= item.value %>"
+     data-date="<%= item.date_expense ? item.date_expense.toISOString().split('T')[0] : '' %>">
         <div class="icon-circle">
           <img src="/images/down.svg" alt="" class="icon">
         </div>

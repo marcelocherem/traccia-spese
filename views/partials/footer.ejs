@@ -2,11 +2,6 @@
 <footer>
   <ul class="nav-list">
 
-    <li><a href="/" class="btn-icon home">
-        <img src="/images/wallet.svg" alt="">
-      </a>
-    </li>
-
     <li>
       <a href="/incomes" class="btn-icon">
         <div class="background <%= section === 'incomes' ? 'active-background' : '' %>"></div>
@@ -14,19 +9,23 @@
       </a>
     </li>
 
+    <li><a href="/" class="btn-icon home">
+        <img src="/images/wallet.svg" alt="">
+      </a>
+    </li>
 
     <li><a href="/bills" class="btn-icon">
-      <div class="background <%= section === 'bills' ? 'active-background' : '' %>"></div>
+        <div class="background <%= section === 'bills' ? 'active-background' : '' %>"></div>
         <img src="/images/receipt.svg" alt="">
       </a>
     </li>
 
 
-    <li><a href="/savings" class="btn-icon">
-      <div class="background <%= section === 'savings' ? 'active-background' : '' %>"></div>
+    <!-- <li><a href="/savings" class="btn-icon">
+        <div class="background <%= section === 'savings' ? 'active-background' : '' %>"></div>
         <img src="/images/savings.svg" alt="">
       </a>
-    </li>
+    </li> -->
   </ul>
 </footer>
 </div>

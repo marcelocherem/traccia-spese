@@ -64,7 +64,7 @@ header.settings {
 /* bills */
 
 #bills .title {
-    margin-top: 175px;
+    margin-top: 90px;
 }
 .separated-bills {
     position: absolute;
@@ -156,7 +156,7 @@ header.settings {
 
 /* incomes */
 #incomes .title {
-    margin-top: 100px;
+    margin-top: 125px;
 }
 
 .balance {
@@ -386,16 +386,6 @@ header.settings {
 
 
 /* savings */
-/* .savings {
-    width: calc(100% - 40px);
-    background-color: #FFF;
-    display: flex;
-    align-items: center;
-    margin: 5px 0;
-    border-radius: 15px;
-    box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.3);
-} */
-
 .savings .income-text {
     display: flex;
     align-items: center;
@@ -479,6 +469,7 @@ select:focus {
     background-color: #62BA8C;
     transition: 0.2s all;
     border-radius: 10px;
+    color: white;
     box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.3);
 
 }
