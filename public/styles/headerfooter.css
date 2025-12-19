@@ -1,78 +1,125 @@
 /* header */
 header {
     width: 100%;
-    height: 60px;
-    background-color: #FFF;
+    height: 105px;
+    background-color: #16422a;
+    z-index: 998;
     display: flex;
-    align-items: center;
-    z-index: 999;
     position: relative;
 }
 
-header .logo {
-    width: 40px;
-    height: 40px;
-    margin: 0 20px 0 10px;
+header .int-header {
+    width: calc(100% - 40px);
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 20px;
 }
 
 header .name {
     font-weight: 400;
     font-size: 1.5rem;
+    color: white;
 }
 
-header .dropdown-menu {
-    position: absolute;
-    display: inline-block;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
+header .header-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 header .settings-btn {
-    background-color: #2ecc71;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
     border: none;
-    border-radius: 50%;
     width: 40px;
     height: 40px;
     cursor: pointer;
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     transition: transform 0.3s ease;
     transform: rotate(0deg);
 }
 
-.settings-btn.active {
-    transform: rotate(90deg);
-}
-
-header .gear-icon {
+header .gear-icon, header .bell-icon {
     width: 30px;
     height: 30px;
-    filter: brightness(0) invert(1);
 }
 
-header .logout-form {
+
+/* config */
+.config {
+    z-index: 999 !important;
     position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 80px;
+    background-color: #F0F1F3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hidden-config {
     top: 50px;
-    right: 0;
-    background-color: white;
+    opacity: 0;
+    z-index: -1;
+    width: 0;
+    height: 0;
+}
+
+/* payday */
+/* .config .payday-config {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100px;
+}
+
+.config .payday-config .txt-payday {
+    font-size: 1.2rem;
+    margin: 10px 0;
+}
+
+.config .payday-config .form-payday {
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.config .payday-config .form-payday input {
+    width: 100%;
+}
+
+.config .payday-config .form-payday button {
+    background-color: #62BA8C;
+    padding: 0 40px;
+    border-radius: 20px;
+    color: white;
+    border: none;
+    height: 20px;
+}
+.config .payday-config .form-payday label {
+    white-space: nowrap;
+}
+
+.logout-form {
     height: 28px;
-    padding: 8px 8px;
-    overflow: hidden;
+    opacity: 1;
     border-radius: 0px 0px 6px 6px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    z-index: 1;
 }
 
-header .logout-form.hidden {
-    height: 0px;
-    padding: 0 8px;
-}
-
-header .logout-btn {
-    background-color: #e74c3c;
+.logout-btn {
+    background-color: #62BA8C;
     color: white;
     border: none;
     padding: 6px 12px;
@@ -81,9 +128,40 @@ header .logout-btn {
     font-size: 14px;
 }
 
-header .logout-btn:hover {
-    background-color: #c0392b;
+.config .payday-config .form-payday button:hover, .logout-btn:hover {
+    background-color: #16422a;
+} */
+
+/* rounded head for body */
+header .borders {
+    position: absolute;
+    bottom: -20px;
+    width: 100%;
+    height: 20px;
+    display: flex;
+    justify-content: space-between;
 }
+header .border {
+    width: 20px;
+    height: 20px;
+    background-color: #16422a;
+}
+header .border div {
+    background-color: #EFEFEE;
+    width: 100%;
+    height: 100%;
+}
+header .border1 .border-int {
+    border-radius: 100% 0 0 0;
+}
+header .border2 .border-int {
+    border-radius: 0 100% 0 0;
+}
+
+
+
+
+
 
 /* footer */
 footer {
@@ -149,7 +227,7 @@ footer .nav-list .btn-icon img {
 
 footer .nav-list .btn-icon.home {
     height: 60px;
-    background-color: #FC673A;
+    background-color: #16422a;
     border-radius: 100%;
     margin-bottom: 20px;
 }

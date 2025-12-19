@@ -1,120 +1,116 @@
+<div class="balance">
+  <div class="container-balance">
+    <h2 class="balance-title">Saldo Totale</h2>
+    <h3 class="balance-value">€ <%= cycles.length> 0 ? cycles[0].total.toFixed(2) : "0.00" %></h3>
+  </div>
+</div>
+<main>
 <section id="incomes">
+
   <div class="title">
-    <h2 class="title-name">Entrate</h2>
+    <h2 class="title-name">Transazioni Entrate</h2>
     <button class="new-spese plus-btn"></button>
   </div>
-
-  <!-- payday -->
-  <div class="payday-config">
-    <% if (!payday) { %>
-      <h3>Configura il tuo Payday</h3>
-      <form action="/set-payday" method="POST">
-        <label for="payday">Giorno del mese</label>
-        <input type="number" name="payday" min="1" max="31" required>
-        <button type="submit">Salva</button>
-      </form>
-    <% }%>
-  </div>
-
   <!-- Cycle system -->
-  <% if (cycles.length === 0) { %>
+  <% if (cycles.length===0) { %>
     <p>Nessun ciclo attivo trovato.</p>
-  <% } else { %>
-    <% cycles.forEach(cycle => { %>
-      <div class="cycle-block">
-        <h3>Ciclo attivo: <%= cycle.start_date %> - <%= cycle.end_date %></h3>
-
-        <% cycle.incomes.forEach(item => { %>
-          <div class="entry entry-incomes" data-id="<%= item.id %>">
-            <div class="icon-circle">
-              <img src="/images/incomes.svg" alt="" class="icon">
-            </div>
-            <div class="income-text">
-              <h2 class="expense-name"><%= item.name %></h2>
-              <h2 class="expense-value"><%= item.value.toFixed(2) %> €</h2>
-            </div>
-            <div class="actions">
-              <button class="edit-btn"
-                      data-id="<%= item.id %>"
-                      data-name="<%= item.name %>"
-                      data-value="<%= item.value %>"
-                      data-date="<%= item.date_created_raw %>"
-                      data-type="<%= item.type %>">
-                <img class="icon-edit" src="images/edit.svg" alt="">
-              </button>
-
-              <form action="/delete-incomes/<%= item.id %>" method="POST" class="delete-form" style="display:inline;">
-                <button type="submit" class="delete-btn">
-                  <img class="icon-edit" src="images/delete.svg" alt="">
+    <% } else { %>
+      <% cycles.forEach(cycle=> { %>
+        <div class="cycle-block">
+          <% cycle.incomes.forEach(item=> { %>
+            <div class="entry entry-incomes" data-id="<%= item.id %>">
+              <div class="icon-circle">
+                <img src="/images/up.svg" alt="" class="icon">
+              </div>
+              <div class="income-text">
+                <h2 class="expense-name">
+                  <%= item.name %>
+                </h2>
+                <h2 class="expense-value">
+                  <%= item.value.toFixed(2) %> €
+                </h2>
+              </div>
+              <div class="actions">
+                <button class="edit-btn" data-id="<%= item.id %>" data-name="<%= item.name %>"
+                  data-value="<%= item.value %>" data-date="<%= item.date_created_raw %>" data-type="<%= item.type %>">
+                  <img class="icon-edit" src="images/edit.svg" alt="">
                 </button>
-              </form>
+
+                <form action="/delete-incomes/<%= item.id %>" method="POST" class="delete-form" style="display:inline;">
+                  <button type="submit" class="delete-btn">
+                    <img class="icon-edit" src="images/delete.svg" alt="">
+                  </button>
+                </form>
+              </div>
             </div>
-          </div>
+            <div class="separator"></div>
+            <% }) %>
+
+              <!-- <div class="total entry-bills">
+                <div class="income-text">
+                  <h2 class="expense-name">Totale ciclo</h2>
+                  <h2 class="expense-value">
+                    <%= cycle.total.toFixed(2) %> €
+                  </h2>
+                </div>
+              </div> -->
+        </div>
         <% }) %>
+          <% } %>
 
-        <div class="total entry-bills">
-          <div class="income-text">
-            <h2 class="expense-name">Totale ciclo</h2>
-            <h2 class="expense-value"><%= cycle.total.toFixed(2) %> €</h2>
-          </div>
-        </div>
-      </div>
-    <% }) %>
-  <% } %>
+            <!-- Form to add incomes -->
+            <div class="container-plus-btn hidden">
+              <div class="container">
+                <form action="/add-incomes" method="POST" class="form-incomes">
+                  <label for="name">Nome</label>
+                  <input type="text" name="name" placeholder="Scrive il nome" required>
 
-  <!-- Form to add incomes -->
-  <div class="container-plus-btn hidden">
-    <div class="container">
-      <form action="/add-incomes" method="POST" class="form-incomes">
-        <label for="name">Nome</label>
-        <input type="text" name="name" placeholder="Scrive il nome" required>
+                  <label for="value">Valore</label>
+                  <input type="number" name="value" step="0.01" placeholder="Scrive il valore (€)" required>
 
-        <label for="value">Valore</label>
-        <input type="number" name="value" step="0.01" placeholder="Scrive il valore (€)" required>
+                  <label for="date_created">Data Mensile</label>
+                  <input type="date" name="date_created" required>
 
-        <label for="date_created">Data Mensile</label>
-        <input type="date" name="date_created" required>
+                  <label for="type">Tipo</label>
+                  <select name="type">
+                    <option value="salary">Stipendio</option>
+                    <option value="bonus">Bonus</option>
+                    <option value="investment">Investimento</option>
+                    <option value="other">Altro</option>
+                  </select>
 
-        <label for="type">Tipo</label>
-        <select name="type">
-          <option value="salary">Stipendio</option>
-          <option value="bonus">Bonus</option>
-          <option value="investment">Investimento</option>
-          <option value="other">Altro</option>
-        </select>
+                  <button type="submit" class="submit-btn">Aggiungi</button>
+                </form>
+              </div>
+            </div>
 
-        <button type="submit" class="submit-btn">Aggiungi</button>
-      </form>
-    </div>
-  </div>
+            <!-- edit form-->
+            <div class="container-edit-btn hidden">
+              <div class="container">
+                <form id="edit-incomes-form" method="POST" class="form-incomes">
+                  <label for="edit-name">Nome</label>
+                  <input type="text" name="name" id="edit-name" required>
 
-  <!-- edit form-->
-  <div class="container-edit-btn hidden">
-    <div class="container">
-      <form id="edit-incomes-form" method="POST" class="form-incomes">
-        <label for="edit-name">Nome</label>
-        <input type="text" name="name" id="edit-name" required>
+                  <label for="edit-value">Valore</label>
+                  <input type="number" name="value" step="0.01" id="edit-value" required>
 
-        <label for="edit-value">Valore</label>
-        <input type="number" name="value" step="0.01" id="edit-value" required>
+                  <label for="edit-date">Data Mensile</label>
+                  <input type="date" name="date_created" id="edit-date" required>
 
-        <label for="edit-date">Data Mensile</label>
-        <input type="date" name="date_created" id="edit-date" required>
+                  <label for="edit-type">Tipo</label>
+                  <select name="type" id="edit-type">
+                    <option value="salary">Stipendio</option>
+                    <option value="bonus">Bonus</option>
+                    <option value="investment">Investimento</option>
+                    <option value="other">Altro</option>
+                  </select>
 
-        <label for="edit-type">Tipo</label>
-        <select name="type" id="edit-type">
-          <option value="salary">Stipendio</option>
-          <option value="bonus">Bonus</option>
-          <option value="investment">Investimento</option>
-          <option value="other">Altro</option>
-        </select>
-
-        <div class="btn-container">
-          <button type="button"
-                  onclick="document.querySelector('.container-edit-btn').classList.add('hidden')">Annulla</button>
-          <button type="submit" class="submit-btn">Salva</button>
-        </div>
-      </form>
-    </div>
-  </div>
+                  <div class="btn-container">
+                    <button type="button"
+                      onclick="document.querySelector('.container-edit-btn').classList.add('hidden')">Annulla</button>
+                    <button type="submit" class="submit-btn">Salva</button>
+                  </div>
+                </form>
+              </div>
+            </div>
 </section>

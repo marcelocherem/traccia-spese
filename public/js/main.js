@@ -136,28 +136,68 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// logout btn
+// config
 function toggleLogout() {
   const btn = document.querySelector(".settings-btn");
-  const form = document.querySelector(".logout-form");
-
   btn.classList.toggle("active");
-  form.classList.toggle("hidden");
 }
-
-// Closing menu when clicking outside
-document.addEventListener("click", function (event) {
-  const dropdown = document.querySelector(".dropdown-menu");
-  const btn = document.querySelector(".settings-btn");
-  const form = document.querySelector(".logout-form");
-
-  if (!dropdown.contains(event.target)) {
-    btn.classList.remove("active");
-    form.classList.add("hidden");
-  }
-});
 
 // load new page
 window.addEventListener("beforeunload", () => {
   document.getElementById("loader").classList.remove("hidden");
+});
+
+
+// pages paid and unpaid from bills
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const target = btn.dataset.target;
+
+    document.querySelectorAll(".entry-bills, .separator").forEach(el => {
+      el.classList.add("hidden");
+      if (el.classList.contains(target)) {
+        el.classList.remove("hidden");
+      }
+    });
+  });
+});
+// fake click to show paid bills by default
+const defaultBtn = document.querySelector(".filter-btn[data-target='paid']");
+if (defaultBtn) defaultBtn.click();
+
+// settings buttons
+document.addEventListener("DOMContentLoaded", () => {
+  const btnPayday = document.querySelector(".container-payday");
+  const btnHistory = document.querySelector(".container-history");
+
+  const paydaySpace = document.querySelector(".payday-space");
+  const historySpace = document.querySelector(".history");
+
+// clean active
+  function clearActive() {
+    document.querySelectorAll(".settings-btn").forEach(btn => {
+      btn.classList.remove("active");
+    });
+  }
+
+  // PAYDAY
+  btnPayday.addEventListener("click", () => {
+    clearActive();
+    btnPayday.classList.add("active");
+
+    paydaySpace.style.display = "flex";
+    historySpace.style.display = "none";
+  });
+
+  // HISTORY
+  btnHistory.addEventListener("click", () => {
+    clearActive();
+    btnHistory.classList.add("active");
+
+    paydaySpace.style.display = "none";
+    historySpace.style.display = "flex";
+  });
 });

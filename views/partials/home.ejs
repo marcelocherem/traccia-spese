@@ -1,75 +1,81 @@
-<section id="home">
+<!-- resume week -->
+<div class="total-week">
+  <div class="infos">
+    <div class="container-info">
+      <h2 class="container-text">Limite</h2>
+      <div class="value">
+        <%= limit.toFixed(2) %> €
+      </div>
+    </div>
+    <div class="container-info <%= remaining < 0 ? 'negative' : 'positive' %>">
+      <h2 class="container-text">Libero</h2>
+      <div class="value">
+        <%= remaining.toFixed(2) %> €
+
+      </div>
+    </div>
+    <div class="container-info">
+      <h2 class="container-text">Speso</h2>
+      <div class="value">
+        <%= total.toFixed(2) %> €
+
+      </div>
+    </div>
+  </div>
+</div>
+<main>
+  <section id="home">
   <div class="title">
-    <h2 class="title-name">Spese settimanali</h2>
+    <h2 class="title-name">Transazioni - <%= weekLabel %>
+    </h2>
     <button class="new-spese plus-btn"></button>
   </div>
-
-  <!-- resume week -->
-  <div class="total-week">
-    <h2 class="daysWeek">
-      <%= weekLabel %>
-    </h2>
-    <div class="infos">
-      <div class="container-table">
-        <table class="container-text">
-          <tr>
-            <td class="name">Limite</td>
-            <td class="value">
-              <%= limit.toFixed(2) %> €
-            </td>
-          </tr>
-          <tr>
-            <td class="name">Speso</td>
-            <td class="value">
-              <%= total.toFixed(2) %> €
-            </td>
-          </tr>
-          <tr class="line">
-            <td colspan="2"></td>
-          </tr>
-          <tr>
-            <td class="name">Libero</td>
-            <td class="value <%= remaining < 0 ? 'negative' : '' %>">
-              <%= remaining.toFixed(2) %> €
-            </td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-  <!-- rettifica set. -->
-  <% if (showRetifica) { %>
-    <div class="retifica-info entry entry-bills">
-      <div class="income-text">
-        <h2>Rettifica sett. precedente</h2>
-        <h2><%= retificaValue.toFixed(2) %> €</h2>
-      </div>
-    </div>
-  <% } %>
-  
   <!-- expenses list -->
-  <% expenses.forEach(item => { %>
-    <div class="entry entry-bills">
-      <div class="income-text">
-        <h2 class="expense-name"><%= item.name %></h2>
-        <h2 class="expense-value"><%= item.value.toFixed(2) %> €</h2>
-      </div>
-      <div class="actions">
-        <button class="edit-btn"
-          data-id="<%= item.id %>"
-          data-name="<%= item.name %>"
-          data-value="<%= item.value %>"
-          data-date="<%= item.date_expense ? item.date_expense.toISOString().split('T')[0] : '' %>">
-          <img class="icon-edit" src="images/edit.svg" alt="">
-        </button>
-        <form action="/delete-weekly_expenses/<%= item.id %>" method="POST" class="delete-form" style="display:inline;">
-          <button type="submit" class="delete-btn">
-            <img class="icon-edit" src="images/delete.svg" alt="">
+  <div class="cycle-block">
+    <% expenses.forEach(item=> { %>
+      <div class="entry entry-bills">
+        <div class="icon-circle">
+          <img src="/images/down.svg" alt="" class="icon">
+        </div>
+        <div class="income-text">
+          <h2 class="expense-name">
+            <%= item.name %>
+          </h2>
+          <h2 class="expense-value">
+            <%= item.value.toFixed(2) %> €
+          </h2>
+        </div>
+        <div class="actions">
+          <button class="edit-btn" data-id="<%= item.id %>" data-name="<%= item.name %>" data-value="<%= item.value %>"
+            data-date="<%= item.date_expense ? item.date_expense.toISOString().split('T')[0] : '' %>">
+            <img class="icon-edit" src="images/edit.svg" alt="">
           </button>
-        </form>
+          <form action="/delete-weekly_expenses/<%= item.id %>" method="POST" class="delete-form"
+            style="display:inline;">
+            <button type="submit" class="delete-btn">
+              <img class="icon-edit" src="images/delete.svg" alt="">
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
-  <% }) %>
+      <div class="separator"></div>
+    <% }) %>
+    <!-- rettifica set. -->
+    <% if (showRetifica) { %>
+      <div class="retifica-info entry entry-bills">
+        <div class="icon-circle">
+          <img class="icon" src="/images/history.svg" alt="">
+        </div>
+        <div class="income-text">
+          <h2>Rettifica sett. precedente</h2>
+          <h2>
+            <%= retificaValue.toFixed(2) %> €
+          </h2>
+        </div>
+      </div>
+      <div class="separator"></div>
+      <% } %>
+  </div>
 
   <!-- add new expense -->
   <div class="container-plus-btn hidden">

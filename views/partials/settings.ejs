@@ -1,0 +1,106 @@
+<main>
+  <section id="settings">
+    <div class="cycle-block">
+      <div class="container-settings settings-btn container-payday">
+        <div class="entry entry-settings">
+          <div class="icon-circle">
+            <img src="/images/calendar.svg" alt="" class="icon">
+          </div>
+          <div class="income-text">
+            <h2 class="setting-name">
+              Data di paga
+            </h2>
+          </div>
+        </div>
+        <div class="separator"></div>
+      </div>
+      <div class="container-settings settings-btn container-history">
+        <div class="entry entry-settings">
+          <div class="icon-circle">
+            <img src="/images/history.svg" alt="" class="icon">
+          </div>
+          <div class="income-text">
+            <h2 class="setting-name">
+              Cronologia
+            </h2>
+          </div>
+        </div>
+        <div class="separator"></div>
+      </div>
+      <form method="POST" action="/logout" class="logout-form">
+        <button type="submit" class="container-settings logout-btn">
+          <div class="entry entry-settings">
+            <div class="icon-circle">
+              <img src="/images/logout.svg" alt="" class="icon">
+            </div>
+            <div class="income-text">
+              <h2 class="setting-name">
+                Logout
+              </h2>
+            </div>
+          </div>
+          <div class="separator"></div>
+        </button>
+      </form>
+    </div>
+    <div class="body-settings">
+      <!-- payday -->
+      <div class="payday-space">
+        <h2 class="payday-title">Data di Entrata</h2>
+        <div class="container-paga">
+          <div class="title-paga">
+            <h2>
+              <%= payday ? "Modifica la data" : "Scrivi la data" %>
+            </h2>
+            <img src="/images/calendar.svg" alt="" class="icon-calendar">
+          </div>
+          <form class="form-payday" action="/set-payday" method="POST">
+            <input type="text" name="payday" inputmode="numeric" pattern="^(?:[1-9]|[12][0-9]|3[01])$" required
+              placeholder="<%= payday ? payday : 'Day' %>" value="">
+            <button type="submit">
+              <%= payday ? "Aggiorna" : "Salva" %>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- history -->
+       <div class="history">
+      <% summaries.forEach(summary => { %>
+        <div class="history-week">
+          <h2 class="daysWeek">
+            <%= summary.label %>
+          </h2>
+          <div class="infos">
+            <div class="container-table">
+              <table class="container-text">
+                <tr>
+                  <td class="name">Limite</td>
+                  <td class="value">
+                    <%= summary.weekly_limit.toFixed(2) %> €
+                  </td>
+                </tr>
+                <tr>
+                  <td class="name">Speso</td>
+                  <td class="value">
+                    <%= summary.total_spent.toFixed(2) %> €
+                  </td>
+                </tr>
+                <tr class="line">
+                  <td colspan="2"></td>
+                </tr>
+                <tr>
+                  <td class="name">Libero</td>
+                  <td class="value <%= summary.remaining < 0 ? 'negative' : '' %>">
+                    <%= summary.remaining.toFixed(2) %> €
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="separator"></div>
+      <% }) %>
+    </div>
+    </div>
+  </section>

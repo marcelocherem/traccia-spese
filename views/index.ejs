@@ -10,6 +10,8 @@
   <%- include("partials/savings") %>
 <% } else if (section === "history") { %>
   <%- include("partials/history") %>
+<% } else if (section === "settings") { %>
+  <%- include("partials/settings", { summaries, payday }) %>
 <% } else { %>
   <%- include("partials/home") %>
 <% } %>

@@ -1,20 +1,21 @@
 <%- include("startheader.ejs") %>
-    <div class="fullContainer">
-        <header>
-            <a href="/" class="logo">
-                <img src="/images/logo.svg" alt="" class="logo-img">
+  <div class="fullContainer">
+    <header class="<%= section %>">
+      <div class="int-header">
+        <% if (section !== "settings") { %>
+          <div class="header-btn dropdown-menu">
+            <a href="/settings" class="settings-btn" onclick="toggleLogout()">
+              <img class="gear-icon" src="/images/settings.svg" alt="">
             </a>
-            <h1 class="name">Traccia Spese</h1>
-
-            <div class="dropdown-menu">
-                <button class="settings-btn" onclick="toggleLogout()">
-                  <img class="gear-icon" src="/images/settings.svg" alt="">
-                </button>
-              
-                <form method="POST" action="/logout" class="logout-form hidden">
-                  <button type="submit" class="logout-btn">Logout</button>
-                </form>
-              </div>
-              
-        </header>
-        <main>
+          </div>
+        <% } %>
+        <% const pageNames={ home: "Traccia Spese" , incomes: "Entrate" , bills: "Spese Fisse" , savings: "Risparmi" ,
+          history: "Storico" , settings: "Impostazioni" }; %>
+          <h1 class="name">
+            <%= pageNames[section] || "Traccia Spese" %>
+          </h1>
+          <div class="header-btn ring-bell">
+            <img class="bell-icon" src="/images/bell.svg">
+          </div>
+      </div>
+    </header>

@@ -107,12 +107,26 @@ app.post("/login", async (req, res) => {
   }
 });
 
+//payday
+app.use(requireLogin, async (req, res, next) => {
+  try {
+    const username = req.user.username;
+    const paydayRes = await db.query("SELECT payday FROM users WHERE username = $1", [username]);
+    res.locals.payday = paydayRes.rows[0]?.payday || null;
+    next();
+  } catch (err) {
+    console.error("Error loading payday:", err.message);
+    res.locals.payday = null;
+    next();
+  }
+});
+
 // home page
 app.get("/", requireLogin, async (req, res) => {
   try {
     const username = req.user.username;
 
-    // semana atual (segunda a domingo)
+    // actual week range
     const today = new Date();
     const dayOfWeek = today.getDay();
     const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -127,7 +141,7 @@ app.get("/", requireLogin, async (req, res) => {
 
     const weekLabel = `${weekStart.toLocaleDateString("it-IT", { day: '2-digit', month: 'short' })} - ${weekEnd.toLocaleDateString("it-IT", { day: '2-digit', month: 'short' })}`;
 
-    // semana anterior
+    // last week
     const prevWeekStart = new Date(weekStart);
     prevWeekStart.setDate(weekStart.getDate() - 7);
     prevWeekStart.setHours(0, 0, 0, 0);
@@ -136,7 +150,7 @@ app.get("/", requireLogin, async (req, res) => {
     prevWeekEnd.setDate(prevWeekStart.getDate() + 6);
     prevWeekEnd.setHours(23, 59, 59, 999);
 
-    // ciclo ativo
+    // active cycle
     const cycleRes = await db.query(`
       SELECT c.id, c.start_date, c.end_date,
              COALESCE(SUM(i.value),0) AS total_income
@@ -155,21 +169,27 @@ app.get("/", requireLogin, async (req, res) => {
     const billValues = billsRes.rows.map(b => parseFloat(b.value) || 0);
     const totalBills = billValues.reduce((acc, val) => acc + val, 0);
 
-    // número de semanas do ciclo
-    let totalWeeks = 4;
+    // number of weeks in cycle
+    let totalWeeks = 0;
     if (cycle) {
       const startDate = new Date(cycle.start_date);
       const endDate = new Date(cycle.end_date);
-      const diffDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-      totalWeeks = Math.ceil(diffDays / 7); // semanas quebradas contam como semana inteira
+
+      // weeks starts in monday
+      const startWeekMonday = new Date(startDate);
+      startWeekMonday.setDate(startDate.getDate() - (startDate.getDay() === 0 ? 6 : startDate.getDay() - 1));
+      const endWeekMonday = new Date(endDate);
+      endWeekMonday.setDate(endDate.getDate() - (endDate.getDay() === 0 ? 6 : endDate.getDay() - 1));
+      totalWeeks = Math.floor((endWeekMonday - startWeekMonday) / (1000 * 60 * 60 * 24 * 7)) + 1;
     }
 
-    // limite semanal
+
+    // weekly limit
     const weeklyLimit = cycle
       ? (parseFloat(cycle.total_income) - totalBills) / totalWeeks
       : 0;
 
-    // despesas da semana
+    // weekly expenses
     const expensesRes = await db.query(`
       SELECT id, name, value, date_expense FROM weekly_expenses
       WHERE username = $1 AND date_expense BETWEEN $2 AND $3
@@ -219,7 +239,7 @@ app.get("/", requireLogin, async (req, res) => {
   }
 });
 
-// lógica para atualizar weekly summary
+// logic for weekly summary
 async function updateWeeklySummary(username, date) {
   const expenseDate = new Date(date);
   const dayOfWeek = expenseDate.getDay();
@@ -365,7 +385,7 @@ app.post("/delete-weekly_expenses/:id", requireLogin, async (req, res) => {
 async function getOrCreateCycle(username, date) {
   const paydayRes = await db.query("SELECT payday FROM users WHERE username = $1", [username]);
   const payday = paydayRes.rows[0]?.payday;
-  if (!payday) throw new Error("Payday não definido para o usuário");
+  if (!payday) throw new Error("data di paga non impostata.");
 
   const d = new Date(date);
   const year = d.getFullYear();
@@ -414,7 +434,7 @@ app.post("/set-payday", requireLogin, async (req, res) => {
       "UPDATE users SET payday = $1 WHERE username = $2",
       [payday, username]
     );
-    res.redirect("/incomes");
+    res.redirect("/");
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).send("Internal error");
@@ -475,7 +495,7 @@ app.get("/incomes", requireLogin, async (req, res) => {
       }
     });
 
-    // envia para o EJS
+    // send to EJS
     res.render("index", {
       section: "incomes",
       cycles: Object.values(cycles),
@@ -486,8 +506,6 @@ app.get("/incomes", requireLogin, async (req, res) => {
     res.status(500).send("Intern error");
   }
 });
-
-
 
 // ADD incomes member
 app.post("/add-incomes", requireLogin, async (req, res) => {
@@ -554,6 +572,8 @@ app.get("/bills", requireLogin, async (req, res) => {
 
     let total = 0;
     let totalDaPagare = 0;
+    let totalPagato = 0;
+
     const paidBills = [];
     const unpaidBills = [];
 
@@ -570,13 +590,15 @@ app.get("/bills", requireLogin, async (req, res) => {
       }
 
       total += value;
-      if (!isPaid) totalDaPagare += value;
+      if (!isPaid) {
+        totalDaPagare += value;
+      }
 
       const bill = { ...item, value, isPaid };
       if (isPaid) paidBills.push(bill);
       else unpaidBills.push(bill);
     });
-
+    totalPagato = total - totalDaPagare;
 
     paidBills.sort((a, b) => a.day - b.day);
     unpaidBills.sort((a, b) => a.day - b.day);
@@ -586,8 +608,10 @@ app.get("/bills", requireLogin, async (req, res) => {
       section: "bills",
       bills,
       total,
-      totalDaPagare
+      totalDaPagare,
+      totalPagato
     });
+    
   } catch (err) {
     console.error("Error loading bills:", err.message);
     res.status(500).send("Internal error");
@@ -741,9 +765,8 @@ app.post("/delete-savings/:id", requireLogin, async (req, res) => {
   }
 });
 
-
-// history
-app.get("/history", requireLogin, async (req, res) => {
+// settings
+app.get("/settings", requireLogin, async (req, res) => {
   const username = req.user.username;
 
   try {
@@ -769,15 +792,14 @@ app.get("/history", requireLogin, async (req, res) => {
     });
 
     res.render("index", {
-      section: "history",
+      section: "settings",
       summaries
     });
   } catch (err) {
-    console.error("Error:", err.message);
-    res.status(500).send("internal error: " + err.message);
+    console.error("Error loading settings:", err.message);
+    res.status(500).send("Internal error");
   }
 });
-
 
 // return for terminal
 app.listen(port, () => {

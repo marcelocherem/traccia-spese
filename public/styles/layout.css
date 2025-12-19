@@ -4,6 +4,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    background-color: #16422a;
 }
 
 @media (max-width: 450px) {
@@ -18,46 +19,64 @@ main {
     background-color: #F0F1F3;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    border-radius: 30px 30px 0 0;
+    position: relative;
 }
+
 main::-webkit-scrollbar {
     display: none;
-  }
+}
 
 main section {
     width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     margin-bottom: 22px;
 }
 
-section .title {
+.balance {
+    width: calc(100% - 80px);
+    display: flex;
+    flex-direction: column;
+    margin-top: 30px;
+}
+
+.balance .balance-value {
+    font-size: 3rem;
+}
+
+.title {
+    width: calc(100% - 80px);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: calc(100% - 40px);
-    margin: 10px 20px;
+    margin-top: 90px;
 }
 
-section .title .title-name {
+.title .title-name {
     font-family: "roboto", sans-serif;
     font-weight: 500;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
 }
 
-section .title .plus-btn {
+.title .plus-btn {
     position: relative;
     width: 35px;
     height: 35px;
-    background-color: #FD673C;
+    background-color: #62BA8C;
     border: none;
     border-radius: 50%;
     cursor: pointer;
 }
+#home .title .plus-btn {
+    background-color:#fd673c;
+}
 
-section .title .plus-btn::before,
-section .title .plus-btn::after {
+
+.title .plus-btn::before,
+.title .plus-btn::after {
     content: "";
     position: absolute;
     background-color: white;
@@ -68,6 +87,6 @@ section .title .plus-btn::after {
     transform: translate(-50%, -50%);
 }
 
-section .title .plus-btn::after {
+.title .plus-btn::after {
     transform: translate(-50%, -50%) rotate(90deg);
 }
