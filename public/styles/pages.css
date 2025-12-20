@@ -66,6 +66,7 @@ header.settings {
 #bills .title {
     margin-top: 90px;
 }
+
 .separated-bills {
     position: absolute;
     top: 50px;
@@ -74,7 +75,7 @@ header.settings {
     width: calc(100% - 50px);
     z-index: 998;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 10px;
 }
@@ -86,7 +87,6 @@ header.settings {
     align-items: center;
     justify-content: space-evenly;
     width: 100%;
-    height: 170px;
     background-color: #FFF;
     border-radius: 15px;
     box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.3);
@@ -99,11 +99,14 @@ header.settings {
 
 .separated-bills .bill-option .subtitle {
     display: flex;
-
+    margin-top: 17px;
 }
 
 .separated-bills .bill-option>* {
     width: calc(100% - 20px);
+}
+.separated-bills .bill-option .info-value {
+    margin-top: 17px;
 }
 
 .separated-bills .bill-option .subtitle .img-icon {
@@ -135,6 +138,7 @@ header.settings {
 
 .separated-bills .bill-option .info-value h3 {
     font-size: 1.6rem;
+    margin-bottom: 17px;
 }
 
 .separated-bills .bill-option .filter-btn {
@@ -144,14 +148,22 @@ header.settings {
     color: white;
     padding: 10px 0px;
     transition: 0.2s all;
+    margin-bottom: 17px;
+    transition: all 0.3s ease;
 }
 
 .separated-bills .bill-option .filter-btn.active {
     opacity: 0;
+    padding: 0;
+    margin: 0;
 }
 
-.entry-bills.hidden {
-    display: none;
+.entry-bills.hidden,
+.separator.hidden {
+    display: flex;
+    opacity: 0;
+    height: 0;
+    min-height: 0;
 }
 
 /* incomes */
@@ -162,7 +174,7 @@ header.settings {
 .balance {
     position: absolute;
     z-index: 999;
-    top: 25px;
+    top: 19px;
     right: 50%;
     transform: translateX(50%);
     width: 50%;
@@ -195,11 +207,13 @@ header.settings {
 .entry {
     position: relative;
     width: calc(100% - 50px);
-    height: 50px;
+    min-height: 50px;
     display: flex;
     justify-content: center;
+    align-items: center;
     margin: 5px 0;
     overflow: hidden;
+    transition: all 0.3s ease;
 }
 
 .icon-circle {
@@ -301,11 +315,14 @@ header.settings {
     justify-content: space-between;
     gap: 5px;
 }
+.entry-bills .first-part .pay-day {
+    white-space: nowrap;
+}
 
 .entry-bills .second-part {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: space-between;
     text-align: end;
     gap: 5px;
 }
@@ -355,7 +372,10 @@ header.settings {
 .entry.active .actions {
     right: 5px;
 }
-
+.expense-value {
+    white-space: nowrap;
+    margin-left: 5px;
+}
 .expense-value,
 .status {
     transition: margin-right 0.3s ease;
@@ -439,11 +459,13 @@ header.settings {
 
 .container-plus-btn .container .form-incomes input,
 .container-edit-btn .container .form-incomes input,
-.container-plus-btn .container .form-incomes select {
+.container-plus-btn .container .form-incomes select,
+.container-edit-btn .container .form-incomes select {
     margin-bottom: 15px;
     padding: 10px;
     border: none;
     border-bottom: 2px solid gray;
+    background-color: white;
 }
 
 input:focus,
@@ -560,7 +582,7 @@ a:active {
     width: 100%;
     background: linear-gradient(to right, #2ecc71, #27ae60);
     animation: loading 1s infinite;
-    z-index: 9999;
+    z-index: 998;
 }
 
 @keyframes loading {
