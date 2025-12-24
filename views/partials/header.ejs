@@ -5,8 +5,16 @@
       <div class="alert-container"></div>
       <div class="int-header">
           <div class="header-btn dropdown-menu">
-            <a href="/settings" class="settings-btn" onclick="toggleLogout()">
-              <img class="gear-icon" src="/images/settings.svg" alt="">
+            <a href="/settings" class="settings-btn" id="settingsBtn" onclick="toggleLogout()">
+              <div class="settings-icon">
+                <div class="setting-circle setting-circle1"></div>
+              </div>
+              <div class="settings-icon">
+                <div class="setting-circle setting-circle2"></div>
+              </div>
+              <div class="settings-icon">
+                <div class="setting-circle setting-circle1"></div>
+              </div>
             </a>
           </div>
         <% const pageNames={ home: "Traccia Spese" , incomes: "Entrate" , bills: "Spese Fisse" , savings: "Risparmi" ,

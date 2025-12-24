@@ -164,6 +164,7 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
     });
   });
 });
+
 // fake click to show paid bills by default
 const defaultBtn = document.querySelector(".filter-btn[data-target='paid']");
 if (defaultBtn) defaultBtn.click();
@@ -176,12 +177,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const paydaySpace = document.querySelector(".payday-space");
   const historySpace = document.querySelector(".history");
 
-// clean active
-  function clearActive() {
-    document.querySelectorAll(".settings-btn").forEach(btn => {
-      btn.classList.remove("active");
-    });
-  }
+// // clean active
+//   function clearActive() {
+//     document.querySelectorAll(".settings-btn").forEach(btn => {
+//       btn.classList.remove("active");
+//     });
+//   }
 
   // PAYDAY
   btnPayday.addEventListener("click", () => {
@@ -200,4 +201,10 @@ document.addEventListener("DOMContentLoaded", () => {
     paydaySpace.style.display = "none";
     historySpace.style.display = "flex";
   });
+});
+
+// settings icon toggle
+document.getElementById("settingsBtn").addEventListener("click", function (e) {
+  this.classList.toggle("toggled");
+  toggleLogout();
 });

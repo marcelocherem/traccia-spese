@@ -31,26 +31,6 @@ header .header-btn {
     justify-content: center;
 }
 
-header .settings-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: transparent;
-    border: none;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    position: relative;
-    transition: transform 0.3s ease;
-    transform: rotate(0deg);
-}
-
-header .gear-icon, header .bell-icon {
-    width: 24px;
-    height: 24px;
-}
-
-
 /* config */
 .config {
     z-index: 999 !important;
@@ -245,3 +225,50 @@ footer .nav-list .btn-icon.home {
     filter: brightness(20%);
 }
 
+
+/* header icon */
+
+header .settings-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    background-color: transparent;
+    border: none;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+header .settings-icon {
+    width: 24px;
+    height: 3px;
+    background-color: white;
+    border-radius: 2px;
+    position: relative;
+}
+
+header .settings-icon .setting-circle {
+    width: 7px;
+    height: 7px;
+    background-color: white;
+    border-radius: 5px;
+    position: absolute;
+    top: -2px;
+    transition: all 0.25s ease;
+}
+header .settings-icon .setting-circle1 {
+    left: 4px;
+}
+header .settings-icon .setting-circle2 {
+    right: 4px;
+}
+header .settings-btn.toggled .setting-circle1 {
+    left: 13px;
+}
+header .settings-btn.toggled .setting-circle2 {
+    right: 13px;
+\
+}
