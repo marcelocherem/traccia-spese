@@ -148,7 +148,7 @@ header.settings {
     color: white;
     padding: 10px 0px;
     transition: 0.2s all;
-    margin-bottom: 17px;
+    margin-bottom: 10px;
     transition: all 0.3s ease;
 }
 
@@ -355,7 +355,6 @@ header.settings {
     justify-content: center;
     padding: 10px 0;
 }
-
 /* edit and delete btn */
 .actions {
     position: absolute;
@@ -425,6 +424,7 @@ header.settings {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.25s ease;
 }
 
 @media (min-width:450px) {
@@ -436,11 +436,11 @@ header.settings {
 
 }
 
-.container-plus-btn.hidden-spese,
 .container-plus-btn.hidden,
-.container-edit-btn.hidden-spese,
 .container-edit-btn.hidden {
-    display: none;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
 }
 
 .container-plus-btn .container,
@@ -448,6 +448,16 @@ header.settings {
     width: calc(100% - 40px);
     border-radius: 15px;
     background-color: white;
+    transition: all 0.25s ease; 
+}
+
+.container-plus-btn.hidden .container,
+.container-edit-btn.hidden .container {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    transition: all 0.25s ease; 
+
 }
 
 .container-plus-btn .container .form-incomes,
@@ -595,10 +605,6 @@ a:active {
     }
 }
 
-.hidden {
-    display: none;
-}
-
 /* settings */
 .entry-settings {
     cursor: pointer;
@@ -626,8 +632,10 @@ a:active {
     flex-direction: column;
     align-items: center;
     width: 100%;
+    height: 0px;
     margin-top: 20px;
-    display: none;
+    opacity: 0;
+    transition: ease all 0.3s;
 }
 .payday-space .payday-title {
     font-size: 1.7rem;
@@ -694,7 +702,10 @@ a:active {
     align-items: center;
     justify-content: center;
     width: 100%;
-    display: none;
+    height: 0px;
+    overflow: hidden;
+    opacity: 0;
+    transition: ease all 0.3s;
 }
 .history .history-week {
     width: calc(100% - 50px);
@@ -758,4 +769,11 @@ a:active {
     background-color: black;
     opacity: 0.2;
     padding: 0 !important;
+}
+
+/* shown pay-day or history */
+.payday-space.show,
+.history.show {
+  opacity: 1;
+  height: auto;
 }

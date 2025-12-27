@@ -177,20 +177,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const paydaySpace = document.querySelector(".payday-space");
   const historySpace = document.querySelector(".history");
 
-// // clean active
-//   function clearActive() {
-//     document.querySelectorAll(".settings-btn").forEach(btn => {
-//       btn.classList.remove("active");
-//     });
-//   }
+  // clean active
+  function clearActive() {
+    document.querySelectorAll(".settings-btn").forEach(btn => {
+      btn.classList.remove("active");
+    });
+  }
 
   // PAYDAY
   btnPayday.addEventListener("click", () => {
     clearActive();
     btnPayday.classList.add("active");
 
-    paydaySpace.style.display = "flex";
-    historySpace.style.display = "none";
+    paydaySpace.classList.add("show");
+    historySpace.classList.remove("show");
   });
 
   // HISTORY
@@ -198,10 +198,14 @@ document.addEventListener("DOMContentLoaded", () => {
     clearActive();
     btnHistory.classList.add("active");
 
-    paydaySpace.style.display = "none";
-    historySpace.style.display = "flex";
+    paydaySpace.classList.remove("show");
+    historySpace.classList.add("show");
   });
 });
+
+
+
+
 
 // settings icon toggle
 document.getElementById("settingsBtn").addEventListener("click", function (e) {
