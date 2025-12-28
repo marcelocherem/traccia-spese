@@ -418,7 +418,6 @@ header.settings {
 .container-edit-btn {
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
     position: absolute;
     top: 0;
     display: flex;
@@ -449,6 +448,7 @@ header.settings {
     border-radius: 15px;
     background-color: white;
     transition: all 0.25s ease; 
+    box-shadow: 0 4px 30px 1000px rgba(0, 0, 0, 0.4);
 }
 
 .container-plus-btn.hidden .container,
@@ -776,4 +776,10 @@ a:active {
 .history.show {
   opacity: 1;
   height: auto;
+}
+
+
+/* loader */
+#loader.hidden {
+    display: none;
 }

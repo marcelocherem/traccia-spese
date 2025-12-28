@@ -1,6 +1,9 @@
 <%- include("partials/startheader.ejs") %>
 <section id="auth" class="fullContainer">
-  <img src="/images/logo.svg" alt="" class="logo-img">
+  <div class="logo-img">
+    <img src="/images/icons/logo-192x192.png" alt="">
+    <h1>Traccia Spese</h1>
+  </div>
 
   <div class="container-login">
     <h2><%= section === "login" ? "Login" : "Register" %></h2>
@@ -22,8 +25,9 @@
         <label for="confirmPassword">Ripeti Password</label>
         <input type="password" name="confirmPassword" required>
       <% } %>
-    
-      <button type="submit"><%= section === "login" ? "Entrar" : "Registrar" %></button>
+      <div class="btn-auth">
+        <button type="submit"><%= section === "login" ? "Entrar" : "Registrar" %></button>
+      </div>
     </form>
     
   </div>

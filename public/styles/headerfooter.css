@@ -214,6 +214,10 @@ footer .nav-list .btn-icon img {
     width: 24px;
 }
 
+footer .nav-list .btn-icon.home img {
+    width: 35px;
+}
+
 footer .nav-list .btn-icon.home {
     height: 60px;
     background-color: #16422a;
