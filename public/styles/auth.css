@@ -1,5 +1,6 @@
 #auth {
-    background-color: #16422A;
+    background: #45999B;
+background: linear-gradient(180deg, rgba(69, 153, 155, 1) 0%, rgba(131, 167, 215, 1) 100%);;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -30,7 +31,6 @@
 }
 
 #auth .container-login {
-    background-color: #16422A;
     padding: 1.5rem;
     border-radius: 12px;
     width: 75%;
@@ -80,18 +80,18 @@
 #auth form .btn-auth button {
     width: 60%;
     padding: 0.7rem;
-    background-color: #61B98B;
+    background-color: #3E8A66;
     color: white;
     border: none;
     border-radius: 50px;
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-
-
+    
+    
 }
 #auth form .btn-auth:hover button {
-    background-color: #27ae60;
+    background-color: #245340;
 }
 
 #auth p {
@@ -102,7 +102,7 @@
 }
 
 #auth a {
-    color: #e67e22;
+    color: #2E5A8F;
     text-decoration: none;
     font-weight: bold;
 }
