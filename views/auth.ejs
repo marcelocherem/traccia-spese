@@ -1,5 +1,6 @@
 <%- include("partials/startheader.ejs") %>
 <section id="auth" class="fullContainer">
+  <div class="bg"></div>
   <div class="logo-img">
     <img src="/images/icons/logo-192x192.png" alt="">
     <h1>Traccia Spese</h1>
@@ -30,12 +31,12 @@
       </div>
     </form>
     
-  </div>
     <% if (section === "login") { %>
       <p>Non hai un account? <a href="/register">Registrati</a></p>
-    <% } else { %>
-      <p>Hai già un account? <a href="/login">Accedi</a></p>
-    <% } %>
+      <% } else { %>
+        <p>Hai già un account? <a href="/login">Accedi</a></p>
+        <% } %>
+      </div>
   </section>
   
   <script src="js/chart.js"></script>

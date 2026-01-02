@@ -3,8 +3,8 @@
   "short_name": "Traccia Spese",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#15422A",
-  "theme_color": "#15422A",
+  "background_color": "#white",
+  "theme_color": "#45999B",
   "icons": [
     {
       "src": "/images/icons/logo-192x192.png",

@@ -1,20 +1,32 @@
 #auth {
-    background: #45999B;
-background: linear-gradient(180deg, rgba(69, 153, 155, 1) 0%, rgba(131, 167, 215, 1) 100%);;
+    background-color: #F0F1F3;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
+#auth .bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 65%;
+    background: #62ba8c;
+    background: linear-gradient(180deg, rgba(98, 186, 140, 1) 0%, rgba(131, 167, 215, 1) 100%);
+    border-bottom-left-radius: 100px;
+    border-bottom-right-radius: 100px;
+}
 #auth .logo-img {
     width: 120px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 3rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     color: white;
+    z-index: 1;
 }
 #auth .logo-img img {
     width: 100px;
@@ -32,15 +44,18 @@ background: linear-gradient(180deg, rgba(69, 153, 155, 1) 0%, rgba(131, 167, 215
 
 #auth .container-login {
     padding: 1.5rem;
-    border-radius: 12px;
     width: 75%;
     max-width: 400px;
+    border-radius: 60px;
+    background-color: white;
+    z-index: 1;
 }
 
 #auth .container-login h2 {
     text-align: center;
     margin-bottom: 1rem;
-    color: white;
+    color: #999;
+    font-size: 1.5rem;
 }
 
 #auth .error {
@@ -53,21 +68,19 @@ background: linear-gradient(180deg, rgba(69, 153, 155, 1) 0%, rgba(131, 167, 215
     display: block;
     margin-top: 1rem;
     font-weight: bold;
-    color: white;
+    color: #999;
 }
 
 #auth form input {
     width: 100%;
     box-sizing: border-box;
-    padding: 10px 0 10px 10px;
+    padding: 12px 0 12px 10px;
     margin-top: 0.3rem;
-    border: 2px solid #ccc;
-    border-radius: 6px;
+    border: none;
+    border-radius: 30px;
     font-size: 14px;
     appearance: none;
-    -webkit-appearance: none;
-    background-color: #15422A !important;
-    color: white;
+    background-color: #f1f3f2;
 }
 
 #auth form .btn-auth {
@@ -80,29 +93,28 @@ background: linear-gradient(180deg, rgba(69, 153, 155, 1) 0%, rgba(131, 167, 215
 #auth form .btn-auth button {
     width: 60%;
     padding: 0.7rem;
-    background-color: #3E8A66;
+    background: #45999B;
+    background: linear-gradient(90deg, rgba(98, 186, 140, 1) 0%, rgba(131, 167, 215, 1) 100%);
     color: white;
     border: none;
     border-radius: 50px;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    
-    
+    transition: background-color 0.3s ease;   
 }
 #auth form .btn-auth:hover button {
     background-color: #245340;
 }
 
 #auth p {
-    color: white;
+    color: black;
     margin-top: 1rem;
     text-align: center;
     font-size: 14px;
 }
 
 #auth a {
-    color: #2E5A8F;
+    color: #61B98C;
     text-decoration: none;
     font-weight: bold;
 }
