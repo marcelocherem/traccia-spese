@@ -143,9 +143,20 @@ function toggleLogout() {
 }
 
 // load new page
-window.addEventListener("beforeunload", () => {
-  document.querySelector(".loader").classList.add("visible");
+document.querySelectorAll('a[href], button[data-navigate]').forEach(el => {
+  el.addEventListener('click', (e) => {
+      document.querySelector('.loader').classList.add('visible');
+
+      const url = el.getAttribute('href');
+      if (url) {
+          e.preventDefault();
+          setTimeout(() => {
+              window.location.href = url;
+          }, 500);
+      }
+  });
 });
+
 
 
 // pages paid and unpaid from bills
