@@ -143,11 +143,9 @@ function toggleLogout() {
 }
 
 // load new page
-window.addEventListener("beforeunload", (event) => {
-  const page = document.body;
-  page.classList.add("page-exit");
+window.addEventListener("beforeunload", () => {
+  document.querySelector(".loader").classList.add("visible");
 });
-
 
 
 // pages paid and unpaid from bills
