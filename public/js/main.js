@@ -152,7 +152,7 @@ document.querySelectorAll('a[href], button[data-navigate]').forEach(el => {
           e.preventDefault();
           setTimeout(() => {
               window.location.href = url;
-          }, 500);
+          }, 200);
       }
   });
 });
