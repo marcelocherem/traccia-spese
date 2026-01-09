@@ -215,6 +215,30 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+// --- bell ---
+(function setupBellAlert() {
+  const bell = document.getElementById("bell-alert");
+  if (!bell) return;
+
+  const hasPayday = bell.dataset.hasPayday === "yes";
+  const popup = document.getElementById("bell-popup");
+  const goBtn = document.getElementById("go-to-payday");
+
+  if (hasPayday) return;
+
+  bell.addEventListener("click", (e) => {
+    e.stopPropagation();
+    popup.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", () => {
+    popup.classList.add("hidden");
+  });
+  
+  goBtn.addEventListener("click", () => {
+    window.location.href = "/settings?open=payday";
+  });
+})();
 
 
 

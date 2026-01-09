@@ -220,6 +220,9 @@ app.get("/", requireLogin, async (req, res) => {
 
     const visualSpent = totalSpent + (showRetifica ? retificaValue : 0);
     const visualRemaining = weeklyLimit - visualSpent;
+    const userRes = await db.query("SELECT payday FROM users WHERE username = $1", [username]);
+    const payday = userRes.rows[0]?.payday || null;
+
 
     res.render("index", {
       section: "home",
@@ -230,7 +233,8 @@ app.get("/", requireLogin, async (req, res) => {
       weekLabel,
       showRetifica,
       retificaValue,
-      cycle
+      cycle,
+      payday
     });
 
   } catch (err) {
@@ -611,7 +615,7 @@ app.get("/bills", requireLogin, async (req, res) => {
       totalDaPagare,
       totalPagato
     });
-    
+
   } catch (err) {
     console.error("Error loading bills:", err.message);
     res.status(500).send("Internal error");

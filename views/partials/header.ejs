@@ -4,26 +4,39 @@
       <div class="background-container"></div>
       <div class="alert-container"></div>
       <div class="int-header">
-          <div class="header-btn dropdown-menu">
-            <a href="/settings" class="settings-btn" id="settingsBtn" onclick="toggleLogout()">
-              <div class="settings-icon">
-                <div class="setting-circle setting-circle1"></div>
-              </div>
-              <div class="settings-icon">
-                <div class="setting-circle setting-circle2"></div>
-              </div>
-              <div class="settings-icon">
-                <div class="setting-circle setting-circle1"></div>
-              </div>
-            </a>
-          </div>
+        <div class="header-btn dropdown-menu">
+          <a href="/settings" class="settings-btn" id="settingsBtn" onclick="toggleLogout()">
+            <div class="settings-icon">
+              <div class="setting-circle setting-circle1"></div>
+            </div>
+            <div class="settings-icon">
+              <div class="setting-circle setting-circle2"></div>
+            </div>
+            <div class="settings-icon">
+              <div class="setting-circle setting-circle1"></div>
+            </div>
+          </a>
+        </div>
         <% const pageNames={ home: "Traccia Spese" , incomes: "Entrate" , bills: "Spese Fisse" , savings: "Risparmi" ,
           history: "Storico" , settings: "Impostazioni" }; %>
           <h1 class="name">
             <%= pageNames[section] || "Traccia Spese" %>
           </h1>
-          <div class="header-btn ring-bell">
+          <div class="header-btn ring-bell" id="bell-alert" data-has-payday="<%= payday ? 'yes' : 'no' %>">
+
             <img class="bell-icon" src="/images/bell.svg">
+
+            <% if (!payday) { %>
+              <span class="bell-badge">1</span>
+              <% } %>
           </div>
+          <!-- bell container -->
+          <div id="bell-popup" class="bell-popup hidden">
+            <p>Devi impostare la data di pagamento.<br>
+               Clicca qui per configurarla e creare <br>i cicli mensili.</p>
+          
+            <button id="go-to-payday">Vai alle impostazioni</button>
+          </div>
+          
       </div>
     </header>
