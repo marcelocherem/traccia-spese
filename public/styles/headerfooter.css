@@ -302,6 +302,8 @@ header .settings-btn.toggled .setting-circle2 {
 .bell-popup button:hover {
     background-color: #16422a;
 }
-.alert-item {
-    margin-right: 10px;
-}
+
+.bell-popup .line:last-of-type {
+    display: none;
+  }
+  
