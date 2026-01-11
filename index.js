@@ -26,7 +26,7 @@ app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || "jwt_secret_key";
 
-// 🔐 Middleware for protection
+// Middleware for protection
 function requireLogin(req, res, next) {
   const token = req.cookies.token;
   if (!token) return res.redirect("/login");
@@ -40,13 +40,13 @@ function requireLogin(req, res, next) {
   }
 }
 
-// 🚪 Logout
+// Logout
 app.post("/logout", (req, res) => {
   res.clearCookie("token");
   res.redirect("/login");
 });
 
-// 📝 register
+// register
 app.get("/register", (req, res) => {
   res.render("auth", { section: "register", error: null });
 });
@@ -76,7 +76,7 @@ app.post("/register", async (req, res) => {
 });
 
 
-// 🔐 Login
+// Login
 app.get("/login", (req, res) => {
   res.render("auth", { section: "login", error: null });
 });
@@ -107,19 +107,92 @@ app.post("/login", async (req, res) => {
   }
 });
 
-//payday
+// payday, middleware global
+// ALERT SYSTEM — middleware global (versão final, ordenada e limpa)
 app.use(requireLogin, async (req, res, next) => {
   try {
     const username = req.user.username;
-    const paydayRes = await db.query("SELECT payday FROM users WHERE username = $1", [username]);
-    res.locals.payday = paydayRes.rows[0]?.payday || null;
+
+    // carregar payday
+    const paydayRes = await db.query(
+      "SELECT payday FROM users WHERE username = $1",
+      [username]
+    );
+    const payday = paydayRes.rows[0]?.payday || null;
+
+    const today = new Date();
+    const todayDay = today.getDate();
+
+    // carregar bills
+    const billsRes = await db.query(
+      "SELECT id, name, value, day, pago, tipo FROM bills WHERE username = $1",
+      [username]
+    );
+    const bills = billsRes.rows;
+
+    const alerts = {
+      paydayMissing: !payday,
+      billsDue: [],
+      billsOverdue: []
+    };
+
+    if (!payday) {
+      res.locals.payday = null;
+      res.locals.alerts = alerts;
+      res.locals.alertCount = 1;
+      return next();
+    }
+
+    // LISTA FINAL DE CONTAS A ANALISAR
+    let candidateBills = [];
+
+    if (todayDay >= payday) {
+      // CASO A: hoje >= payday
+      candidateBills = bills.filter(b =>
+        b.tipo === "manual" &&
+        !b.pago &&
+        b.day >= payday &&
+        b.day <= todayDay
+      );
+    } else {
+      // CASO B: hoje < payday
+      candidateBills = bills.filter(b =>
+        b.tipo === "manual" &&
+        !b.pago &&
+        (b.day >= payday || b.day <= todayDay)
+      );
+    }
+
+    // ORDENAR POR DIA
+    candidateBills.sort((a, b) => a.day - b.day);
+
+    // CLASSIFICAR
+    for (const b of candidateBills) {
+      if (b.day === todayDay) {
+        alerts.billsDue.push(b); // da pagare oggi
+      } else {
+        alerts.billsOverdue.push(b); // è scaduta
+      }
+    }
+
+    const alertCount =
+      (alerts.paydayMissing ? 1 : 0) +
+      alerts.billsDue.length +
+      alerts.billsOverdue.length;
+
+    res.locals.payday = payday;
+    res.locals.alerts = alerts;
+    res.locals.alertCount = alertCount;
+
     next();
   } catch (err) {
-    console.error("Error loading payday:", err.message);
-    res.locals.payday = null;
+    console.error("Error in alert middleware:", err);
     next();
   }
 });
+
+
+
 
 // home page
 app.get("/", requireLogin, async (req, res) => {
@@ -243,6 +316,24 @@ app.get("/", requireLogin, async (req, res) => {
   }
 });
 
+// MARK bill as paid
+app.post("/bills/:id/mark-paid", requireLogin, async (req, res) => {
+  const id = Number(req.params.id);
+  const username = req.user.username;
+
+  try {
+    await db.query(
+      "UPDATE bills SET pago = true WHERE id = $1 AND username = $2",
+      [id, username]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error marking bill paid:", err);
+    res.status(500).json({ error: "Internal error" });
+  }
+});
+
+
 // logic for weekly summary
 async function updateWeeklySummary(username, date) {
   const expenseDate = new Date(date);
@@ -257,7 +348,7 @@ async function updateWeeklySummary(username, date) {
   weekEnd.setDate(weekStart.getDate() + 6);
   weekEnd.setHours(23, 59, 59, 999);
 
-  // ciclo ativo na data da despesa
+  // active cycle for that date
   const cycleRes = await db.query(`
     SELECT c.id, c.start_date, c.end_date,
            COALESCE(SUM(i.value),0) AS total_income
@@ -414,18 +505,26 @@ async function getOrCreateCycle(username, date) {
     [username, startISO, endISO]
   );
 
+  // cycle exists, don't create new
   if (cycleRes.rows.length > 0) return cycleRes.rows[0].id;
 
-  // new cycle if doesn't exist
+  // create new cycle
   const weeksCount = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24 * 7));
   const newCycle = await db.query(
     `INSERT INTO cycles (username, start_date, end_date, weeks_count)
      VALUES ($1, $2, $3, $4) RETURNING id`,
     [username, startISO, endISO, weeksCount]
   );
+  
+  // update all bills to unpaid for new cycle
+  await db.query(
+    "UPDATE bills SET pago = false WHERE username = $1",
+    [username]
+  );
 
   return newCycle.rows[0].id;
 }
+
 
 
 // SET payday
@@ -570,7 +669,7 @@ app.get("/bills", requireLogin, async (req, res) => {
 
   try {
     const result = await db.query(
-      "SELECT id, name, value, day FROM bills WHERE username = $1 AND savings = false",
+      "SELECT id, name, value, day, tipo, pago FROM bills WHERE username = $1 AND savings = false",
       [username]
     );
 
@@ -587,25 +686,30 @@ app.get("/bills", requireLogin, async (req, res) => {
 
       let isPaid = false;
 
-      if (todayDay >= salaryDay) {
-        isPaid = billDay >= salaryDay && billDay <= todayDay;
+      if (item.tipo === "manual") {
+        isPaid = item.pago === true;
       } else {
-        isPaid = (billDay >= salaryDay) || (billDay <= todayDay);
+        if (todayDay >= salaryDay) {
+          isPaid = billDay >= salaryDay && billDay <= todayDay;
+        } else {
+          isPaid = (billDay >= salaryDay) || (billDay <= todayDay);
+        }
       }
 
       total += value;
-      if (!isPaid) {
-        totalDaPagare += value;
-      }
+      if (!isPaid) totalDaPagare += value;
 
       const bill = { ...item, value, isPaid };
+
       if (isPaid) paidBills.push(bill);
       else unpaidBills.push(bill);
     });
+
     totalPagato = total - totalDaPagare;
 
     paidBills.sort((a, b) => a.day - b.day);
     unpaidBills.sort((a, b) => a.day - b.day);
+
     const bills = [...paidBills, ...unpaidBills];
 
     res.render("index", {
@@ -621,6 +725,7 @@ app.get("/bills", requireLogin, async (req, res) => {
     res.status(500).send("Internal error");
   }
 });
+
 
 
 // ADD bill

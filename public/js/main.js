@@ -157,16 +157,16 @@ document.querySelectorAll('a[href], button[data-navigate]').forEach(el => {
   });
 });
 
-
-
 // pages paid and unpaid from bills
-document.querySelectorAll(".filter-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+document.querySelectorAll(".bill-option").forEach(option => {
+  option.addEventListener("click", () => {
+    // Remover estado ativo de todos
+    document.querySelectorAll(".bill-option").forEach(o => o.classList.remove("active"));
+    option.classList.add("active");
 
-    const target = btn.dataset.target;
+    const target = option.dataset.target;
 
+    // Mostrar apenas os itens do tipo selecionado
     document.querySelectorAll(".entry-bills, .separator").forEach(el => {
       el.classList.add("hidden");
       if (el.classList.contains(target)) {
@@ -176,9 +176,11 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   });
 });
 
-// fake click to show paid bills by default
-const defaultBtn = document.querySelector(".filter-btn[data-target='paid']");
-if (defaultBtn) defaultBtn.click();
+// Ativar por padrão a opção 'paid'
+const defaultOption = document.querySelector(".bill-option[data-target='paid']");
+if (defaultOption) defaultOption.click();
+
+
 
 // settings buttons
 document.addEventListener("DOMContentLoaded", () => {
@@ -215,16 +217,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// --- bell ---
+// bell
 (function setupBellAlert() {
   const bell = document.getElementById("bell-alert");
-  if (!bell) return;
-
-  const hasPayday = bell.dataset.hasPayday === "yes";
   const popup = document.getElementById("bell-popup");
-  const goBtn = document.getElementById("go-to-payday");
 
-  if (hasPayday) return;
+  if (!bell || !popup) return;
 
   bell.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -234,13 +232,22 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", () => {
     popup.classList.add("hidden");
   });
-  
-  goBtn.addEventListener("click", () => {
-    window.location.href = "/settings?open=payday";
+
+  const goBtn = document.getElementById("go-to-payday");
+  if (goBtn) {
+    goBtn.addEventListener("click", () => {
+      window.location.href = "/settings?open=payday";
+    });
+  }
+
+  document.querySelectorAll(".mark-paid").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      await fetch(`/bills/${id}/mark-paid`, { method: "POST" });
+      window.location.reload();
+    });
   });
 })();
-
-
 
 // settings icon toggle
 document.getElementById("settingsBtn").addEventListener("click", function (e) {

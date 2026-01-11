@@ -22,21 +22,52 @@
           <h1 class="name">
             <%= pageNames[section] || "Traccia Spese" %>
           </h1>
-          <div class="header-btn ring-bell" id="bell-alert" data-has-payday="<%= payday ? 'yes' : 'no' %>">
-
+          <!-- bell icon -->
+          <div class="header-btn ring-bell" id="bell-alert">
             <img class="bell-icon" src="/images/bell.svg">
 
-            <% if (!payday) { %>
-              <span class="bell-badge">1</span>
+            <% if (alertCount> 0) { %>
+              <span class="bell-badge">
+                <%= alertCount %>
+              </span>
               <% } %>
           </div>
-          <!-- bell container -->
+
+          <!-- bell popup -->
           <div id="bell-popup" class="bell-popup hidden">
-            <p>Devi impostare la data di pagamento.<br>
-               Clicca qui per configurarla e creare <br>i cicli mensili.</p>
-          
-            <button id="go-to-payday">Vai alle impostazioni</button>
+
+            <% if (alerts.paydayMissing) { %>
+              <div class="alert-item">
+                <p>Devi impostare la data di pagamento.<br>
+                  Clicca qui per configurarla e creare i cicli mensili.</p>
+                <button id="go-to-payday">Vai alle impostazioni</button>
+              </div>
+              <div class="line"></div>
+              <% } %>
+
+              <% alerts.billsDue.forEach(b=> { %>
+                <div class="alert-item due">
+                  <div class="container-int">
+                    <h2 class="text-int-bell"><%= b.name %> è in scadenza oggi</div>
+                    <h2 class="text-int-bell">€<%= b.value %></h2>
+                  </div>
+                  <button class="mark-paid" data-id="<%= b.id %>">pagare</button>
+                </div>
+              <div class="line"></div>
+
+                <% }) %>
+
+              <% alerts.billsOverdue.forEach(b=> { %>
+                <div class="alert-item overdue">
+                  <div class="container-int">
+                    <h2 class="text-int-bell"><%= b.name %> è scaduta</h2>
+                    <h2 class="text-int-bell">€<%= b.value %></h2>
+                  </div>
+                  <button class="mark-paid" data-id="<%= b.id %>">pagare</button>
+                </div>
+              <div class="line"></div>
+                <% }) %>
           </div>
-          
+
       </div>
     </header>

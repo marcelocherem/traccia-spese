@@ -1,6 +1,6 @@
 <!-- change buttons-->
 <div class="separated-bills">
-  <div class="bill-option paid">
+  <div class="bill-option paid active" data-target="paid">
     <div class="subtitle">
       <div class="img-icon">
         <img src="/images/check green.svg" alt="">
@@ -11,9 +11,9 @@
       <h2 class="total-text">Totale</h2>
       <h3 class="value"><%= totalPagato.toFixed(2) %></h3>
     </div>
-    <button class="filter-btn active" data-target="paid">Aprire</button>
   </div>
-  <div class="bill-option unpaid">
+
+  <div class="bill-option unpaid" data-target="unpaid">
     <div class="subtitle">
       <div class="img-icon">
         <img src="/images/expoint.svg" alt="">
@@ -24,9 +24,9 @@
       <h2 class="total-text">Totale</h2>
       <h3 class="value"><%= totalDaPagare.toFixed(2) %></h3>
     </div>
-    <button class="filter-btn" data-target="unpaid">Aprire</button>
   </div>
 </div>
+
 <main>
   <section id="bills">
 

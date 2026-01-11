@@ -128,7 +128,8 @@ header.home {
 }
 
 header.bills {
-    height: 165px;
+    height: 45px;
+    margin-bottom: 65px;
 }
 header.incomes {
     height: 100px;
@@ -188,7 +189,7 @@ header.settings {
     right: 50%;
     transform: translateX(50%);
     width: calc(100% - 50px);
-    z-index: 998;
+    z-index: 997;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -205,9 +206,11 @@ header.settings {
     background-color: #FFF;
     border-radius: 15px;
     box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+
 }
 
-.separated-bills .bill-option.paid {
+.separated-bills .bill-option.active {
     background-color: #3E8A66;
     color: white;
 }
@@ -232,45 +235,33 @@ header.settings {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.3s ease;
 }
 
-.separated-bills .paid .subtitle .img-icon {
+.separated-bills .active .subtitle .img-icon {
     background-color: white;
 }
 
-.separated-bills .unpaid .subtitle .img-icon {
+.separated-bills .subtitle .img-icon {
     background-color: #16422a;
 }
 
 .separated-bills .bill-option .subtitle .img-icon img {
     max-height: 12px;
     max-width: 12px;
+    transition: all 0.3s ease;
 }
 
-.separated-bills .unpaid .subtitle .img-icon img {
+.separated-bills .active .subtitle .img-icon img {
+    filter: brightness(1) invert(1);
+}
+.separated-bills .subtitle .img-icon img {
     filter: brightness(0) invert(1);
 }
 
 .separated-bills .bill-option .info-value h3 {
     font-size: 1.6rem;
     margin-bottom: 17px;
-}
-
-.separated-bills .bill-option .filter-btn {
-    background-color: #245340;
-    border: none;
-    border-radius: 20px;
-    color: white;
-    padding: 10px 0px;
-    transition: 0.2s all;
-    margin-bottom: 10px;
-    transition: all 0.3s ease;
-}
-
-.separated-bills .bill-option .filter-btn.active {
-    opacity: 0;
-    padding: 0;
-    margin: 0;
 }
 
 .entry-bills.hidden,
@@ -282,6 +273,8 @@ header.settings {
     margin: 0;
 }
 
+
+
 /* incomes */
 #incomes .title {
     margin-top: 125px;
@@ -289,7 +282,7 @@ header.settings {
 
 .balance {
     position: absolute;
-    z-index: 998;
+    z-index: 997;
     top: 19px;
     right: 50%;
     transform: translateX(50%);
