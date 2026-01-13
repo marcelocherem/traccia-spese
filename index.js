@@ -108,12 +108,10 @@ app.post("/login", async (req, res) => {
 });
 
 // payday, middleware global
-// ALERT SYSTEM — middleware global (versão final, ordenada e limpa)
 app.use(requireLogin, async (req, res, next) => {
   try {
     const username = req.user.username;
 
-    // carregar payday
     const paydayRes = await db.query(
       "SELECT payday FROM users WHERE username = $1",
       [username]
@@ -123,7 +121,6 @@ app.use(requireLogin, async (req, res, next) => {
     const today = new Date();
     const todayDay = today.getDate();
 
-    // carregar bills
     const billsRes = await db.query(
       "SELECT id, name, value, day, pago, tipo FROM bills WHERE username = $1",
       [username]
@@ -142,12 +139,9 @@ app.use(requireLogin, async (req, res, next) => {
       res.locals.alertCount = 1;
       return next();
     }
-
-    // LISTA FINAL DE CONTAS A ANALISAR
     let candidateBills = [];
 
     if (todayDay >= payday) {
-      // CASO A: hoje >= payday
       candidateBills = bills.filter(b =>
         b.tipo === "manual" &&
         !b.pago &&
@@ -155,23 +149,20 @@ app.use(requireLogin, async (req, res, next) => {
         b.day <= todayDay
       );
     } else {
-      // CASO B: hoje < payday
       candidateBills = bills.filter(b =>
         b.tipo === "manual" &&
         !b.pago &&
         (b.day >= payday || b.day <= todayDay)
       );
     }
-
-    // ORDENAR POR DIA
+    
     candidateBills.sort((a, b) => a.day - b.day);
 
-    // CLASSIFICAR
     for (const b of candidateBills) {
       if (b.day === todayDay) {
-        alerts.billsDue.push(b); // da pagare oggi
+        alerts.billsDue.push(b);
       } else {
-        alerts.billsOverdue.push(b); // è scaduta
+        alerts.billsOverdue.push(b);
       }
     }
 
@@ -552,6 +543,30 @@ app.get("/incomes", requireLogin, async (req, res) => {
     const paydayRes = await db.query("SELECT payday FROM users WHERE username = $1", [username]);
     const payday = paydayRes.rows[0]?.payday || null;
 
+    const todayISO = new Date().toISOString().split("T")[0];
+    const currentCycleId = await getOrCreateCycle(username, todayISO);
+
+    // 1) ATIVAR salários do ciclo atual que ainda estão pending
+    await db.query(
+      `UPDATE incomes
+       SET status = 'active'
+       WHERE username = $1
+         AND cycle_id = $2
+         AND type = 'salary'
+         AND status = 'pending'`,
+      [username, currentCycleId]
+    );
+
+    await db.query(
+      `UPDATE incomes
+       SET status = 'inactive'
+       WHERE username = $1
+         AND cycle_id <> $2
+         AND type = 'salary'
+         AND status = 'active'`,
+      [username, currentCycleId]
+    );
+
     const result = await db.query(
       `SELECT c.id as cycle_id, c.start_date, c.end_date,
               i.id, i.name, i.value, i.date_created, i.type, i.status as income_status
@@ -598,17 +613,18 @@ app.get("/incomes", requireLogin, async (req, res) => {
       }
     });
 
-    // send to EJS
     res.render("index", {
       section: "incomes",
       cycles: Object.values(cycles),
       payday
     });
+
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).send("Intern error");
   }
 });
+
 
 // ADD incomes member
 app.post("/add-incomes", requireLogin, async (req, res) => {
@@ -617,11 +633,18 @@ app.post("/add-incomes", requireLogin, async (req, res) => {
 
   try {
     const cycleId = await getOrCreateCycle(username, date_created);
+    const todayISO = new Date().toISOString().split("T")[0];
+    const currentCycleId = await getOrCreateCycle(username, todayISO);
+
+    let status = "pending";
+    if ((type || "salary") === "salary" && cycleId === currentCycleId) {
+      status = "active";
+    }
 
     await db.query(
       `INSERT INTO incomes (name, value, date_created, type, username, cycle_id, status)
-       VALUES ($1, $2, $3, $4, $5, $6, 'pending')`,
-      [name, value, date_created, type || "salary", username, cycleId]
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [name, value, date_created, type || "salary", username, cycleId, status]
     );
 
     res.redirect("/incomes");
@@ -630,6 +653,7 @@ app.post("/add-incomes", requireLogin, async (req, res) => {
     res.status(500).send("Intern error");
   }
 });
+
 
 // EDIT incomes member
 app.post("/edit-incomes/:id", requireLogin, async (req, res) => {
@@ -727,16 +751,15 @@ app.get("/bills", requireLogin, async (req, res) => {
 });
 
 
-
 // ADD bill
 app.post("/add-bill", requireLogin, async (req, res) => {
-  const { name, value, day } = req.body;
+  const { name, value, day, tipo } = req.body;
   const username = req.user.username;
 
   try {
     await db.query(
-      "INSERT INTO bills (name, value, day, savings, username) VALUES ($1, $2, $3, false, $4)",
-      [name, parseFloat(value), parseInt(day), username]
+      "INSERT INTO bills (name, value, day, tipo, savings, username) VALUES ($1, $2, $3, $4, false, $5)",
+      [name, parseFloat(value), parseInt(day), tipo, username]
     );
     res.redirect("/bills");
   } catch (err) {
@@ -745,10 +768,11 @@ app.post("/add-bill", requireLogin, async (req, res) => {
   }
 });
 
+
 // EDIT bill
 app.post("/edit-bill/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
-  const { name, value, day } = req.body;
+  const { name, value, day, tipo } = req.body;
   const username = req.user.username;
 
   const check = await db.query("SELECT username FROM bills WHERE id = $1", [id]);
@@ -756,8 +780,8 @@ app.post("/edit-bill/:id", requireLogin, async (req, res) => {
 
   try {
     await db.query(
-      "UPDATE bills SET name = $1, value = $2, day = $3, savings = false WHERE id = $4",
-      [name, parseFloat(value), parseInt(day), id]
+      "UPDATE bills SET name = $1, value = $2, day = $3, tipo = $4, savings = false WHERE id = $5",
+      [name, parseFloat(value), parseInt(day), tipo, id]
     );
     res.redirect("/bills");
   } catch (err) {
@@ -765,6 +789,7 @@ app.post("/edit-bill/:id", requireLogin, async (req, res) => {
     res.status(500).send("Internal error");
   }
 });
+
 
 
 // DELETE bill

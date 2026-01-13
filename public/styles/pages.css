@@ -201,10 +201,14 @@ header.settings {
     display: flex;
     flex-direction: column;
     align-items: center;
+    height: 100px;
+    padding: 5px 0;
     justify-content: space-evenly;
-    width: 100%;
     background-color: #FFF;
-    border-radius: 15px;
+    border-top-left-radius: 55px 50px;
+    border-top-right-radius: 55px 50px;
+    border-bottom-left-radius: 55px 50px;
+    border-bottom-right-radius: 55px 50px;
     box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 
@@ -213,56 +217,9 @@ header.settings {
 .separated-bills .bill-option.active {
     background-color: #3E8A66;
     color: white;
+    padding: 15px 0;
 }
 
-.separated-bills .bill-option .subtitle {
-    display: flex;
-    margin-top: 17px;
-}
-
-.separated-bills .bill-option>* {
-    width: calc(100% - 20px);
-}
-.separated-bills .bill-option .info-value {
-    margin-top: 17px;
-}
-
-.separated-bills .bill-option .subtitle .img-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 10px;
-    border-radius: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.separated-bills .active .subtitle .img-icon {
-    background-color: white;
-}
-
-.separated-bills .subtitle .img-icon {
-    background-color: #16422a;
-}
-
-.separated-bills .bill-option .subtitle .img-icon img {
-    max-height: 12px;
-    max-width: 12px;
-    transition: all 0.3s ease;
-}
-
-.separated-bills .active .subtitle .img-icon img {
-    filter: brightness(1) invert(1);
-}
-.separated-bills .subtitle .img-icon img {
-    filter: brightness(0) invert(1);
-}
-
-.separated-bills .bill-option .info-value h3 {
-    font-size: 1.6rem;
-    margin-bottom: 17px;
-}
 
 .entry-bills.hidden,
 .separator.hidden {
@@ -272,8 +229,6 @@ header.settings {
     min-height: 0;
     margin: 0;
 }
-
-
 
 /* incomes */
 #incomes .title {

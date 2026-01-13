@@ -1,29 +1,19 @@
 <!-- change buttons-->
 <div class="separated-bills">
   <div class="bill-option paid active" data-target="paid">
-    <div class="subtitle">
-      <div class="img-icon">
-        <img src="/images/check green.svg" alt="">
-      </div>
-      <h2>Pagate</h2>
-    </div>
-    <div class="info-value">
-      <h2 class="total-text">Totale</h2>
-      <h3 class="value"><%= totalPagato.toFixed(2) %></h3>
-    </div>
+    <h2>Pagate</h2>
+    <h2 class="total-text">Totale</h2>
+    <h3 class="value">
+      <%= totalPagato.toFixed(2) %>
+    </h3>
   </div>
 
   <div class="bill-option unpaid" data-target="unpaid">
-    <div class="subtitle">
-      <div class="img-icon">
-        <img src="/images/expoint.svg" alt="">
-      </div>
-      <h2>Da Pagare</h2>
-    </div>
-    <div class="info-value">
-      <h2 class="total-text">Totale</h2>
-      <h3 class="value"><%= totalDaPagare.toFixed(2) %></h3>
-    </div>
+    <h2>Da Pagare</h2>
+    <h2 class="total-text">Totale</h2>
+    <h3 class="value">
+      <%= totalDaPagare.toFixed(2) %>
+    </h3>
   </div>
 </div>
 
@@ -31,89 +21,97 @@
   <section id="bills">
 
 
-  <div class="title">
-    <h2 class="title-name">Spese Fisse</h2>
-    <button class="new-spese plus-btn"></button>
-  </div>
+    <div class="title">
+      <h2 class="title-name">Spese Fisse</h2>
+      <button class="new-spese plus-btn"></button>
+    </div>
 
 
-  <!-- paid bills -->
-  <div class="cycle-block">
-    <% bills.forEach(item=> { %>
-      <div class="entry entry-bills <%= item.isPaid ? 'paid' : 'unpaid' %>" data-id="<%= item.id %>">
-        <div class="icon-circle">
-          <% if (item.isPaid) { %>
-            <img src="/images/check green.svg" alt="" class="icon">
-          <% } else { %>
-            <img src="/images/expoint.svg" alt="" class="icon">
-          <% } %>
+    <!-- paid bills -->
+    <div class="cycle-block">
+      <% bills.forEach(item=> { %>
+        <div class="entry entry-bills <%= item.isPaid ? 'paid' : 'unpaid' %>" data-id="<%= item.id %>">
+          <div class="icon-circle">
+            <% if (item.isPaid) { %>
+              <img src="/images/check green.svg" alt="" class="icon">
+              <% } else { %>
+                <img src="/images/expoint.svg" alt="" class="icon">
+                <% } %>
 
-        </div>
-        <div class="container-int">
-          <div class="first-part">
-            <h2 class="expense-name">
-              <%= item.name %>
-            </h2>
-            <h2 class="pay-day">Data di paga: <%= String(item.day).padStart(2, '0' ) %>
-            </h2>
           </div>
-          <div class="second-part">
-            <h2 class="expense-value">
-              <%= item.value.toFixed(2) %> €
-            </h2>
-            <h2 class="status <%= item.isPaid ? 'paid' : 'unpaid' %>">
-              <%= item.isPaid ? 'Pagata' : 'Da pagare' %>
-            </h2>
+          <div class="container-int">
+            <div class="first-part">
+              <h2 class="expense-name">
+                <%= item.name %>
+              </h2>
+              <h2 class="pay-day">Data di paga: <%= String(item.day).padStart(2, '0' ) %>
+              </h2>
+            </div>
+            <div class="second-part">
+              <h2 class="expense-value">
+                <%= item.value.toFixed(2) %> €
+              </h2>
+              <h2 class="status <%= item.isPaid ? 'paid' : 'unpaid' %>">
+                <%= item.isPaid ? 'Pagata' : 'Da pagare' %>
+              </h2>
+            </div>
           </div>
-        </div>
 
-        <div class="actions">
-          <button class="edit-btn" data-id="<%= item.id %>" data-name="<%= item.name %>" data-value="<%= item.value %>"
-            data-day="<%= item.day %>">
-            <img class="icon-edit" src="images/edit.svg" alt="">
-          </button>
-          <form action="/delete-bill/<%= item.id %>" method="POST" class="delete-form" style="display:inline;">
-            <button type="submit" class="delete-btn">
-              <img class="icon-edit" src="images/delete.svg" alt="">
+          <div class="actions">
+            <button class="edit-btn" data-id="<%= item.id %>" data-name="<%= item.name %>"
+              data-value="<%= item.value %>" data-day="<%= item.day %>">
+              <img class="icon-edit" src="images/edit.svg" alt="">
             </button>
-          </form>
+            <form action="/delete-bill/<%= item.id %>" method="POST" class="delete-form" style="display:inline;">
+              <button type="submit" class="delete-btn">
+                <img class="icon-edit" src="images/delete.svg" alt="">
+              </button>
+            </form>
+          </div>
         </div>
+        <div class="separator <%= item.isPaid ? 'paid' : 'unpaid' %>"></div>
+        <% }) %>
+    </div>
+
+    <!-- Add form -->
+    <div class="container-plus-btn hidden">
+      <div class="container">
+        <form id="add-bill-form" action="/add-bill" method="POST" class="form-incomes">
+          <label for="add-name">Nome</label>
+          <input type="text" name="name" id="add-name" required>
+          <label for="add-value">Valore</label>
+          <input type="number" name="value" step="0.01" id="add-value" required>
+          <label for="add-day">giorno di paga</label>
+          <input type="number" name="day" min="0" max="31" id="add-day" required>
+          <label for="add-tipo">Tipo</label> <select name="tipo" id="add-tipo" required>
+            <option value="automatico">Automatico</option>
+            <option value="manual">Manuale</option>
+          </select>
+          <button type="submit" class="submit-btn">Aggiungi</button>
+        </form>
       </div>
-      <div class="separator <%= item.isPaid ? 'paid' : 'unpaid' %>"></div>
-      <% }) %>
-  </div>
-
-  <!-- Add form -->
-  <div class="container-plus-btn hidden">
-    <div class="container">
-      <form id="add-bill-form" action="/add-bill" method="POST" class="form-incomes">
-        <label for="add-name">Nome</label>
-        <input type="text" name="name" id="add-name" required>
-        <label for="add-value">Valore</label>
-        <input type="number" name="value" step="0.01" id="add-value" required>
-        <label for="add-day">giorno di paga</label>
-        <input type="number" name="day" min="0" max="31" id="add-day" required>
-        <button type="submit" class="submit-btn">Aggiungi</button>
-      </form>
     </div>
-  </div>
 
-  <!-- Edit Form -->
-  <div class="container-edit-btn hidden">
-    <div class="container">
-      <form id="edit-bill-form" method="POST" class="form-incomes">
-        <label for="edit-name">Nome</label>
-        <input type="text" name="name" id="edit-name" required>
-        <label for="edit-value">Valore</label>
-        <input type="number" name="value" step="0.01" id="edit-value" required>
-        <label for="edit-day">giorno di paga</label>
-        <input type="number" name="day" min="0" max="31" id="edit-day" required>
-        <div class="btn-container">
-          <button type="button"
-            onclick="document.querySelector('.container-edit-btn').classList.add('hidden')">Annulla</button>
-          <button type="submit" class="submit-btn">Salva</button>
-        </div>
-      </form>
+    <!-- Edit Form -->
+    <div class="container-edit-btn hidden">
+      <div class="container">
+        <form id="edit-bill-form" method="POST" class="form-incomes">
+          <label for="edit-name">Nome</label>
+          <input type="text" name="name" id="edit-name" required>
+          <label for="edit-value">Valore</label>
+          <input type="number" name="value" step="0.01" id="edit-value" required>
+          <label for="edit-day">giorno di paga</label>
+          <input type="number" name="day" min="0" max="31" id="edit-day" required>
+          <label for="add-tipo">Tipo</label> <select name="tipo" id="add-tipo" required>
+            <option value="automatico">Automatico</option>
+            <option value="manual">Manuale</option>
+          </select>
+          <div class="btn-container">
+            <button type="button"
+              onclick="document.querySelector('.container-edit-btn').classList.add('hidden')">Annulla</button>
+            <button type="submit" class="submit-btn">Salva</button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
