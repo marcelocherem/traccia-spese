@@ -7,7 +7,6 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 
 dotenv.config();
-console.log("DATABASE_URL:", process.env.DATABASE_URL);
 
 const { Pool } = pg;
 const db = new Pool({
@@ -26,7 +25,7 @@ app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || "jwt_secret_key";
 
-// Middleware for protection
+// AUTH MIDDLEWARE
 function requireLogin(req, res, next) {
   const token = req.cookies.token;
   if (!token) return res.redirect("/login");
@@ -35,18 +34,18 @@ function requireLogin(req, res, next) {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
     next();
-  } catch (err) {
+  } catch {
     return res.redirect("/login");
   }
 }
 
-// Logout
+// LOGOUT
 app.post("/logout", (req, res) => {
   res.clearCookie("token");
   res.redirect("/login");
 });
 
-// register
+// REGISTER
 app.get("/register", (req, res) => {
   res.render("auth", { section: "register", error: null });
 });
@@ -68,15 +67,13 @@ app.post("/register", async (req, res) => {
       "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
       [username, email, hashedPassword]
     );
-
     res.redirect("/login");
-  } catch (err) {
+  } catch {
     res.render("auth", { section: "register", error: "Il nome utente o email esiste già." });
   }
 });
 
-
-// Login
+// LOGIN
 app.get("/login", (req, res) => {
   res.render("auth", { section: "login", error: null });
 });
@@ -92,22 +89,24 @@ app.post("/login", async (req, res) => {
   const user = result.rows[0];
   const match = await bcrypt.compare(password, user.password);
 
-  if (match) {
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, {
-      expiresIn: "7d"
-    });
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 1000 * 60 * 60 * 24 * 7
-    });
-    res.redirect("/");
-  } else {
-    res.render("auth", { section: "login", error: "password errata." });
+  if (!match) {
+    return res.render("auth", { section: "login", error: "password errata." });
   }
+
+  const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, {
+    expiresIn: "7d"
+  });
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 1000 * 60 * 60 * 24 * 7
+  });
+
+  res.redirect("/");
 });
 
-// payday, middleware global
+// GLOBAL ALERT MIDDLEWARE
 app.use(requireLogin, async (req, res, next) => {
   try {
     const username = req.user.username;
@@ -155,15 +154,11 @@ app.use(requireLogin, async (req, res, next) => {
         (b.day >= payday || b.day <= todayDay)
       );
     }
-    
     candidateBills.sort((a, b) => a.day - b.day);
 
     for (const b of candidateBills) {
-      if (b.day === todayDay) {
-        alerts.billsDue.push(b);
-      } else {
-        alerts.billsOverdue.push(b);
-      }
+      if (b.day === todayDay) alerts.billsDue.push(b);
+      else alerts.billsOverdue.push(b);
     }
 
     const alertCount =
@@ -182,15 +177,59 @@ app.use(requireLogin, async (req, res, next) => {
   }
 });
 
+// FINALIZE PAST WEEKS
+async function finalizePastWeeks(username) {
+  await db.query(`
+    UPDATE weekly_summary
+    SET is_final = true
+    WHERE username = $1
+      AND period_end < CURRENT_DATE
+      AND is_final = false
+  `, [username]);
+}
 
+// get or create cycle
+async function getOrCreateCycle(username, todayISO) {
+  const existing = await db.query(`
+    SELECT id, start_date, end_date, weeks_count
+    FROM cycles
+    WHERE username = $1
+    ORDER BY id DESC
+    LIMIT 1
+  `, [username]);
 
+  if (existing.rows.length > 0) {
+    const cycle = existing.rows[0];
+    const end = new Date(cycle.end_date);
+    const today = new Date(todayISO);
 
-// home page
+    if (end >= today) {
+      return cycle.id;
+    }
+
+  }
+  const start = todayISO;
+  const end = new Date(todayISO);
+  end.setDate(end.getDate() + 27);
+  const endISO = end.toISOString().split("T")[0];
+
+  const insert = await db.query(`
+    INSERT INTO cycles (username, start_date, end_date, weeks_count)
+    VALUES ($1, $2, $3, 4)
+    RETURNING id
+  `, [username, start, endISO]);
+
+  return insert.rows[0].id;
+}
+
+// HOME PAGE
 app.get("/", requireLogin, async (req, res) => {
   try {
     const username = req.user.username;
 
-    // actual week range
+    // finalize weeks
+    await finalizePastWeeks(username);
+
     const today = new Date();
     const dayOfWeek = today.getDay();
     const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -239,14 +278,14 @@ app.get("/", requireLogin, async (req, res) => {
       const startDate = new Date(cycle.start_date);
       const endDate = new Date(cycle.end_date);
 
-      // weeks starts in monday
       const startWeekMonday = new Date(startDate);
       startWeekMonday.setDate(startDate.getDate() - (startDate.getDay() === 0 ? 6 : startDate.getDay() - 1));
+
       const endWeekMonday = new Date(endDate);
       endWeekMonday.setDate(endDate.getDate() - (endDate.getDay() === 0 ? 6 : endDate.getDay() - 1));
+
       totalWeeks = Math.floor((endWeekMonday - startWeekMonday) / (1000 * 60 * 60 * 24 * 7)) + 1;
     }
-
 
     // weekly limit
     const weeklyLimit = cycle
@@ -284,9 +323,9 @@ app.get("/", requireLogin, async (req, res) => {
 
     const visualSpent = totalSpent + (showRetifica ? retificaValue : 0);
     const visualRemaining = weeklyLimit - visualSpent;
+
     const userRes = await db.query("SELECT payday FROM users WHERE username = $1", [username]);
     const payday = userRes.rows[0]?.payday || null;
-
 
     res.render("index", {
       section: "home",
@@ -307,37 +346,50 @@ app.get("/", requireLogin, async (req, res) => {
   }
 });
 
-// MARK bill as paid
-app.post("/bills/:id/mark-paid", requireLogin, async (req, res) => {
-  const id = Number(req.params.id);
-  const username = req.user.username;
-
-  try {
-    await db.query(
-      "UPDATE bills SET pago = true WHERE id = $1 AND username = $2",
-      [id, username]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Error marking bill paid:", err);
-    res.status(500).json({ error: "Internal error" });
-  }
-});
-
-
-// logic for weekly summary
-async function updateWeeklySummary(username, date) {
-  const expenseDate = new Date(date);
-  const dayOfWeek = expenseDate.getDay();
+function getWeekRange(date) {
+  const d = new Date(date);
+  const dayOfWeek = d.getDay();
   const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
 
-  const weekStart = new Date(expenseDate);
-  weekStart.setDate(expenseDate.getDate() + diffToMonday);
+  const weekStart = new Date(d);
+  weekStart.setDate(d.getDate() + diffToMonday);
   weekStart.setHours(0, 0, 0, 0);
 
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekStart.getDate() + 6);
   weekEnd.setHours(23, 59, 59, 999);
+
+  return { weekStart, weekEnd };
+}
+
+async function updateWeeklySummary(username, date) {
+  const expenseDate = new Date(date);
+  const { weekStart, weekEnd } = getWeekRange(expenseDate);
+
+  const existingSummaryRes = await db.query(`
+    SELECT weekly_limit, total_spent, is_final
+    FROM weekly_summary
+    WHERE username = $1 AND period_start = $2 AND period_end = $3
+  `, [username, weekStart, weekEnd]);
+
+  const existingSummary = existingSummaryRes.rows[0];
+
+  if (existingSummary?.is_final) {
+    const expensesRes = await db.query(`
+      SELECT SUM(value) FROM weekly_expenses
+      WHERE username = $1 AND date_expense BETWEEN $2 AND $3
+    `, [username, weekStart, weekEnd]);
+
+    const totalSpent = parseFloat(expensesRes.rows[0].sum) || 0;
+
+    await db.query(`
+      UPDATE weekly_summary
+      SET total_spent = $1
+      WHERE username = $2 AND period_start = $3 AND period_end = $4
+    `, [totalSpent, username, weekStart, weekEnd]);
+
+    return;
+  }
 
   // active cycle for that date
   const cycleRes = await db.query(`
@@ -355,7 +407,7 @@ async function updateWeeklySummary(username, date) {
 
   // Bills
   const billsRes = await db.query("SELECT value FROM bills WHERE username = $1", [username]);
-  const billValues = billsRes.rows.map(b => parseFloat(b.value));
+  const billValues = billsRes.rows.map(b => parseFloat(b.value) || 0);
   const totalBills = billValues.reduce((acc, val) => acc + val, 0);
 
   // number of weeks in cycle
@@ -380,16 +432,11 @@ async function updateWeeklySummary(username, date) {
 
   const totalSpent = parseFloat(expensesRes.rows[0].sum) || 0;
 
-  const summaryExists = await db.query(`
-    SELECT COUNT(*) FROM weekly_summary
-    WHERE username = $1 AND period_start = $2 AND period_end = $3
-  `, [username, weekStart, weekEnd]);
-
-  if (parseInt(summaryExists.rows[0].count) === 0) {
+  if (!existingSummary) {
     await db.query(`
-      INSERT INTO weekly_summary (username, period_start, period_end, weekly_limit, total_spent)
-      VALUES ($1, $2, $3, $4, $5)
-    `, [username, weekStart, weekEnd, weeklyLimit, totalSpent]);
+      INSERT INTO weekly_summary (username, period_start, period_end, weekly_limit, total_spent, is_final)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [username, weekStart, weekEnd, weeklyLimit, totalSpent, false]);
   } else {
     await db.query(`
       UPDATE weekly_summary
@@ -399,7 +446,8 @@ async function updateWeeklySummary(username, date) {
   }
 }
 
-// ADD weekly expense
+// ADD WEEKLY EXPENSE
+
 app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
   const { name, value, date_expense } = req.body;
   const username = req.user.username;
@@ -421,7 +469,7 @@ app.post("/add-weekly_expenses", requireLogin, async (req, res) => {
   }
 });
 
-// EDIT weekly expense
+// EDIT WEEKLY EXPENSE
 app.post("/edit-weekly_expenses/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const { name, value, date_expense } = req.body;
@@ -447,7 +495,7 @@ app.post("/edit-weekly_expenses/:id", requireLogin, async (req, res) => {
   }
 });
 
-// DELETE weekly expense
+// DELETE WEEKLY EXPENSE
 app.post("/delete-weekly_expenses/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const username = req.user.username;
@@ -467,58 +515,7 @@ app.post("/delete-weekly_expenses/:id", requireLogin, async (req, res) => {
   }
 });
 
-// function to get or create cycle
-async function getOrCreateCycle(username, date) {
-  const paydayRes = await db.query("SELECT payday FROM users WHERE username = $1", [username]);
-  const payday = paydayRes.rows[0]?.payday;
-  if (!payday) throw new Error("data di paga non impostata.");
-
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = d.getMonth();
-  const day = d.getDate();
-
-  let startDate, endDate;
-
-  if (day <= payday) {
-    startDate = new Date(year, month, payday);
-    endDate = new Date(year, month + 1, payday - 1);
-  } else {
-    startDate = new Date(year, month + 1, payday);
-    endDate = new Date(year, month + 2, payday - 1);
-  }
-
-  const startISO = startDate.toISOString().split("T")[0];
-  const endISO = endDate.toISOString().split("T")[0];
-
-  const cycleRes = await db.query(
-    `SELECT id FROM cycles WHERE username = $1 AND start_date = $2 AND end_date = $3`,
-    [username, startISO, endISO]
-  );
-
-  // cycle exists, don't create new
-  if (cycleRes.rows.length > 0) return cycleRes.rows[0].id;
-
-  // create new cycle
-  const weeksCount = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24 * 7));
-  const newCycle = await db.query(
-    `INSERT INTO cycles (username, start_date, end_date, weeks_count)
-     VALUES ($1, $2, $3, $4) RETURNING id`,
-    [username, startISO, endISO, weeksCount]
-  );
-  
-  // update all bills to unpaid for new cycle
-  await db.query(
-    "UPDATE bills SET pago = false WHERE username = $1",
-    [username]
-  );
-
-  return newCycle.rows[0].id;
-}
-
-
-
-// SET payday
+// SET PAYDAY
 app.post("/set-payday", requireLogin, async (req, res) => {
   const { payday } = req.body;
   const username = req.user.username;
@@ -535,7 +532,7 @@ app.post("/set-payday", requireLogin, async (req, res) => {
   }
 });
 
-// INCOMES page
+// INCOMES PAGE
 app.get("/incomes", requireLogin, async (req, res) => {
   const username = req.user.username;
 
@@ -546,7 +543,6 @@ app.get("/incomes", requireLogin, async (req, res) => {
     const todayISO = new Date().toISOString().split("T")[0];
     const currentCycleId = await getOrCreateCycle(username, todayISO);
 
-    // 1) ATIVAR salários do ciclo atual que ainda estão pending
     await db.query(
       `UPDATE incomes
        SET status = 'active'
@@ -625,8 +621,7 @@ app.get("/incomes", requireLogin, async (req, res) => {
   }
 });
 
-
-// ADD incomes member
+// ADD INCOME
 app.post("/add-incomes", requireLogin, async (req, res) => {
   const { name, value, date_created, type } = req.body;
   const username = req.user.username;
@@ -654,8 +649,7 @@ app.post("/add-incomes", requireLogin, async (req, res) => {
   }
 });
 
-
-// EDIT incomes member
+// EDIT INCOME
 app.post("/edit-incomes/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const { name, value, date_created, type, status } = req.body;
@@ -671,7 +665,7 @@ app.post("/edit-incomes/:id", requireLogin, async (req, res) => {
   res.redirect("/incomes");
 });
 
-// DELETE incomes member
+// DELETE INCOME
 app.post("/delete-incomes/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const username = req.user.username;
@@ -683,8 +677,7 @@ app.post("/delete-incomes/:id", requireLogin, async (req, res) => {
   res.redirect("/incomes");
 });
 
-
-// BILLS page
+// BILLS PAGE
 app.get("/bills", requireLogin, async (req, res) => {
   const username = req.user.username;
   const today = new Date();
@@ -750,8 +743,7 @@ app.get("/bills", requireLogin, async (req, res) => {
   }
 });
 
-
-// ADD bill
+// ADD BILL
 app.post("/add-bill", requireLogin, async (req, res) => {
   const { name, value, day, tipo } = req.body;
   const username = req.user.username;
@@ -768,8 +760,7 @@ app.post("/add-bill", requireLogin, async (req, res) => {
   }
 });
 
-
-// EDIT bill
+// EDIT BILL
 app.post("/edit-bill/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const { name, value, day, tipo } = req.body;
@@ -790,9 +781,7 @@ app.post("/edit-bill/:id", requireLogin, async (req, res) => {
   }
 });
 
-
-
-// DELETE bill
+// DELETE BILL
 app.post("/delete-bill/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const username = req.user.username;
@@ -809,7 +798,7 @@ app.post("/delete-bill/:id", requireLogin, async (req, res) => {
   }
 });
 
-// savings
+// SAVINGS PAGE
 app.get("/savings", requireLogin, async (req, res) => {
   const username = req.user.username;
 
@@ -839,7 +828,7 @@ app.get("/savings", requireLogin, async (req, res) => {
   }
 });
 
-// ADD savings
+// ADD SAVINGS
 app.post("/add-savings", requireLogin, async (req, res) => {
   const { name, value, day } = req.body;
   const username = req.user.username;
@@ -856,8 +845,7 @@ app.post("/add-savings", requireLogin, async (req, res) => {
   }
 });
 
-
-// EDIT savings
+// EDIT SAVINGS
 app.post("/edit-savings/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const { name, value, day } = req.body;
@@ -878,7 +866,7 @@ app.post("/edit-savings/:id", requireLogin, async (req, res) => {
   }
 });
 
-// DELETE savings
+// DELETE SAVINGS
 app.post("/delete-savings/:id", requireLogin, async (req, res) => {
   const { id } = req.params;
   const username = req.user.username;
@@ -899,7 +887,7 @@ app.post("/delete-savings/:id", requireLogin, async (req, res) => {
   }
 });
 
-// settings
+// SETTINGS PAGE
 app.get("/settings", requireLogin, async (req, res) => {
   const username = req.user.username;
 
@@ -935,8 +923,197 @@ app.get("/settings", requireLogin, async (req, res) => {
   }
 });
 
-// return for terminal
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${port}`);
+// NEW CYCLE — GET PAGE
+app.get("/new-cycle", requireLogin, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const todayISO = new Date().toISOString().split("T")[0];
+    const cycleId = await getOrCreateCycle(username, todayISO);
+    const cycleRes = await db.query(`
+      SELECT id, start_date, end_date, weeks_count
+      FROM cycles
+      WHERE id = $1
+    `, [cycleId]);
+
+    const cycle = cycleRes.rows[0];
+    const leftoverRes = await db.query(`
+      SELECT COALESCE(SUM(amount), 0) AS total
+      FROM savings
+      WHERE username = $1 AND cycle_id = $2 AND source = 'leftover'
+    `, [username, cycleId]);
+
+    const leftover = leftoverRes.rows[0].total || 0;
+    const weekLeftoverRes = await db.query(`
+      SELECT COALESCE(SUM(value), 0) AS total
+      FROM weekly_expenses
+      WHERE username = $1 AND cycle_id = $2
+    `, [username, cycleId]);
+
+    const weekLeftover = weekLeftoverRes.rows[0].total || 0;
+    const incomesRes = await db.query(`
+  SELECT id, name, value, type, status
+  FROM incomes
+  WHERE username = $1
+    AND cycle_id = $2
+    AND status IN ('active', 'confirmed')
+  ORDER BY id DESC
+`, [username, cycleId]);
+
+    const incomes = incomesRes.rows;
+    // bills
+    const billsRes = await db.query(`
+      SELECT id, name, value, day, tipo
+      FROM bills
+      WHERE username = $1
+      ORDER BY day ASC
+    `, [username]);
+
+    const bills = billsRes.rows;
+    const totalIncomes = incomes.reduce((acc, s) => acc + parseFloat(s.value || 0), 0);
+    const totalSavings = leftover;
+    const weeksCount = cycle.weeks_count || 4;
+    const weeklyValue = (totalIncomes + totalSavings) / weeksCount;
+
+    res.render("new-cycle", {
+      section: "new-cycle",
+      cycle,
+      leftover,
+      weekLeftover,
+      weeklyValue,
+      incomes,
+      bills
+    });
+
+  } catch (err) {
+    console.error("Error loading new cycle:", err);
+    res.redirect("/");
+  }
 });
 
+// LEFTOVER ACTION (rettifica settimanale)
+app.post("/new-cycle/leftover-action", requireLogin, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const { action, amount } = req.body;
+
+    const todayISO = new Date().toISOString().split("T")[0];
+    const cycleId = await getOrCreateCycle(username, todayISO);
+
+    const val = parseFloat(amount) || 0;
+
+    if (action === "use") {
+      await db.query(`
+        INSERT INTO incomes (username, cycle_id, name, value, type, status, date_created)
+        VALUES ($1, $2, 'Rettifica', $3, 'income', 'confirmed', now())
+      `, [username, cycleId, val]);
+    } else {
+      await db.query(`
+        INSERT INTO savings (username, cycle_id, amount, source, created_at)
+        VALUES ($1, $2, $3, 'leftover', now())
+      `, [username, cycleId, val]);
+    }
+
+    res.redirect("/new-cycle?page=0");
+
+  } catch (err) {
+    console.error("leftover-action error:", err);
+    res.redirect("/new-cycle?page=0");
+  }
+});
+
+// ADD SALARY
+app.post("/new-cycle/add-salary", requireLogin, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const { name, value } = req.body;
+
+    const todayISO = new Date().toISOString().split("T")[0];
+    const cycleId = await getOrCreateCycle(username, todayISO);
+
+    const val = parseFloat(value) || 0;
+
+    await db.query(`
+      INSERT INTO incomes (username, cycle_id, name, value, type, status, date_created)
+      VALUES ($1, $2, $3, $4, 'salary', 'confirmed', now())
+    `, [username, cycleId, name, val]);
+
+    res.redirect("/new-cycle?page=1");
+
+  } catch (err) {
+    console.error("add-salary error:", err);
+    res.redirect("/new-cycle?page=1");
+  }
+});
+
+// DELETE BILLS
+app.post("/new-cycle/delete-bills", requireLogin, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const ids = req.body.ids.split(",").map(id => parseInt(id));
+
+    await db.query(`
+      DELETE FROM bills
+      WHERE username = $1 AND id = ANY($2)
+    `, [username, ids]);
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error("delete-bills error:", err);
+    res.json({ ok: false, message: err.message });
+  }
+});
+
+
+// add bill
+app.post("/new-cycle/add-bill", requireLogin, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const { name, value, day, tipo } = req.body;
+
+    await db.query(`
+      INSERT INTO bills (username, name, value, day, tipo)
+      VALUES ($1, $2, $3, $4, $5)
+    `, [username, name, parseFloat(value) || 0, parseInt(day) || 0, tipo]);
+
+    // volta para a página de bills dentro do wizard
+    res.redirect("/new-cycle?page=2");
+  } catch (err) {
+    console.error("new-cycle add-bill error:", err);
+    res.redirect("/new-cycle?page=2");
+  }
+});
+
+// CONFIRM CYCLE
+app.post("/new-cycle/confirm", requireLogin, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const { weeklyOriginal, weeklyNew } = req.body;
+
+    const todayISO = new Date().toISOString().split("T")[0];
+    const cycleId = await getOrCreateCycle(username, todayISO);
+
+    const orig = parseFloat(weeklyOriginal) || 0;
+    const novo = parseFloat(weeklyNew) || 0;
+
+    const diff = orig - novo;
+
+    if (diff > 0) {
+      await db.query(`
+        INSERT INTO savings (username, cycle_id, amount, source, created_at)
+        VALUES ($1, $2, $3, 'weekly-diff', now())
+      `, [username, cycleId, diff]);
+    }
+
+    res.redirect("/");
+
+  } catch (err) {
+    console.error("confirm cycle error:", err);
+    res.redirect("/new-cycle?page=3");
+  }
+});
+
+// server
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Server running on http://0.0.0.0:${port}`);
+});

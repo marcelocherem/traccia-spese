@@ -1,0 +1,501 @@
+/* page */
+header.new-cycle {
+    height: 100px;
+}
+
+.bg-new-cycle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+}
+
+.bg-new-cycle .full-body {
+    width: calc(100% - 40px);
+    height: 80%;
+    border-radius: 60px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.bg-new-cycle .full-body h2 {
+    font-size: 0.8rem;
+}
+
+/* head */
+.bg-new-cycle .full-body .new-cycle-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 80px;
+    position: relative;
+}
+
+.bg-new-cycle .full-body .new-cycle-title h1 {
+    color: #62BA8C;
+    font-size: 1.5rem;
+}
+
+.bg-new-cycle .full-body .new-cycle-title .line {
+    width: 60%;
+    height: 2px;
+    background-color: #E0E0E0;
+    position: absolute;
+    bottom: 0;
+}
+
+/* foot */
+.bg-new-cycle .full-body .new-cycle-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 80px;
+}
+
+.bg-new-cycle .full-body .new-cycle-actions button {
+    width: 40%;
+    height: 100%;
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+}
+
+.bg-new-cycle .full-body .new-cycle-actions button img {
+    height: 25px;
+}
+
+.bg-new-cycle .full-body .body-int {
+    width: 100%;
+    height: calc(100% - 160px);
+    overflow: hidden;
+
+}
+
+.bg-new-cycle .full-body .body-int .carousel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    /* flex-wrap: nowrap; */
+    transition: transform 0.50s ease-in-out;
+}
+
+
+.bg-new-cycle .full-body .body-int .carousel>* {
+    width: 100%;
+    height: 100%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-direction: column;
+}
+
+.bg-new-cycle .full-body .body-int .carousel>*>* {
+    margin: 0 40px;
+}
+
+.bg-new-cycle .full-body .body-int .carousel>* h2 {
+    text-align: center;
+}
+
+/* rest */
+.bg-new-cycle .full-body .rest .decision-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.bg-new-cycle .full-body .rest .decision-buttons button {
+    width: 100px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    background-color: #62BA8C;
+    border-radius: 20px;
+    color: white;
+}
+
+.bg-new-cycle .full-body .rest img {
+    height: 80px;
+}
+
+.bg-new-cycle .full-body .add-salary-new-cycle {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    background-color: #62BA8C;
+    border: none;
+    border-radius: 50%;
+    border: #62BA8C 2px solid;
+    cursor: pointer;
+    transition: all 0.5s ease-in-out;
+}
+
+.bg-new-cycle .full-body .add-salary-new-cycle * {
+    transition: all 0.5s ease-in-out;
+}
+
+.bg-new-cycle .full-body .container-new-salary{
+    transition: all 0.5s ease-in-out;
+}
+
+.bg-new-cycle .full-body.container-new-salary {
+    position: relative;
+}
+
+.bg-new-cycle .full-body .add-salary-new-cycle::before,
+.bg-new-cycle .full-body .add-salary-new-cycle::after {
+    content: "";
+    position: absolute;
+    background-color: white;
+    width: 3px;
+    height: 12px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.bg-new-cycle .full-body .add-salary-new-cycle::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* salaries */
+.bg-new-cycle .full-body .salaries .salaries-new-cycle {
+    width: calc(100% - 80px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bg-new-cycle .full-body .salaries .salaries-new-cycle .line {
+    width: 100%;
+    height: 1px;
+    background-color: #E0E0E0;
+}
+
+.bg-new-cycle .full-body .salaries .salaries-new-cycle .expense-value {
+    color: #62BA8C;
+}
+
+.bg-new-cycle .full-body .salaries .new-entry-new-cycle .income-text {
+    display: flex;
+    justify-content: space-between;
+}
+
+.bg-new-cycle .full-body .salaries .total {
+    width: 120px;
+    height: 40px;
+    border-radius: 20px;
+    background-color: #62BA8C;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+/* salaries add btn */
+.bg-new-cycle .full-body .container-new-salary.when-open .add-salary-new-cycle {
+    width: 190px;
+    height: 107px;
+    border-radius: 20px;
+    background-color: white;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.bg-new-cycle .full-body .when-open .add-salary-new-cycle::before,
+.bg-new-cycle .full-body .when-open .add-salary-new-cycle::after {
+    display: none;
+}
+
+.bg-new-cycle .full-body .form-add-salary-new-cycle {
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+    height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.bg-new-cycle .full-body .when-open .form-add-salary-new-cycle {
+    visibility: visible;
+    opacity: 1;
+    width: 160px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    padding-top: 10px;
+}
+.bg-new-cycle .full-body .form-add-salary-new-cycle input {
+    width: 0px;
+    height: 0px;
+    border: 0;
+    border-bottom: 2px solid #9B9B9A;
+    padding: 0 0 0 15px;
+    font-size: 1rem;
+}
+
+.bg-new-cycle .full-body .when-open .form-add-salary-new-cycle input {
+    width: 135px;
+    height: 30px;
+}
+.bg-new-cycle .full-body .form-add-salary-new-cycle button {
+    width: 0px;
+    height: 0px;
+    background-color: #62BA8C;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    align-self: center;
+    position: relative;
+}
+.bg-new-cycle .full-body .when-open .form-add-salary-new-cycle button {
+    width: 30px;
+    height: 30px;
+    z-index: 999;
+}
+
+.bg-new-cycle .full-body .form-add-salary-new-cycle button::before, .bg-new-cycle .full-body .form-add-salary-new-cycle button::after {
+    content: "";
+    position: absolute;
+    background-color: white;
+    width: 3px;
+    height: 12px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.bg-new-cycle .full-body .form-add-salary-new-cycle button::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* bills */
+.bg-new-cycle .full-body .bills-container .add-bill-new-cycle {
+    width: 30px;
+    height: 30px;
+    background-color: #62BA8C;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.5s ease-in-out;
+    position: relative;
+}
+.bg-new-cycle .full-body .bills-container .add-bill-new-cycle::before,
+.bg-new-cycle .full-body .bills-container .add-bill-new-cycle::after {
+    content: "";
+    position: absolute;
+    background-color: white;
+    width: 3px;
+    height: 12px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.bg-new-cycle .full-body .bills-container .add-bill-new-cycle::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.bg-new-cycle .full-body .bills-container .container-add-bill {
+    width: calc(100% - 40px);
+    border-radius: 15px;
+    background-color: white;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 30px 10px rgba(0, 0, 0, 0.4);
+    position: absolute;
+    z-index: 999;
+}
+
+.bg-new-cycle .full-body .bills-container .container-add-bill.hidden {
+    opacity: 0;
+    visibility: hidden;
+    height: 0;
+    padding: 0;
+}
+
+.bg-new-cycle .full-body .bills-container .container-add-bill .form-bills {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.bg-new-cycle .full-body .bills-container .container-add-bill .form-bills input,
+.bg-new-cycle .full-body .bills-container .container-add-bill .form-bills select {
+    margin-bottom: 5px;
+    padding: 5px;
+    border: none;
+    border-bottom: 2px solid gray;
+    background-color: white;
+}
+
+.bg-new-cycle .full-body .bills-container .container-add-bill .form-bills .btn-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.bg-new-cycle .full-body .bills-container .container-add-bill .form-bills .btn-container button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    color: white;
+    background-color: #62BA8C;
+}
+
+.bg-new-cycle .full-body .bills-container .bills {
+    width: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 50%;
+    overflow-y: auto;
+    padding: 0 10px;
+}
+
+.bg-new-cycle .full-body .bills-container .bills .line {
+    width: 100%;
+    min-height: 1px;
+    background-color: #E0E0E0;
+}
+
+
+.bg-new-cycle .full-body .bills-container .bill,
+.bg-new-cycle .full-body .bills-container .bill .container-int {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.bg-new-cycle .full-body .bills-container .bill .container-int {
+    width: calc(100% - 30px);
+}
+
+.bg-new-cycle .full-body .bills-container .bill .checkbox {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin-right: 10px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 2px solid #ccc;
+    background: white;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.bg-new-cycle .full-body .bills-container .bill .checkbox:checked {
+    background: #62BA8C;
+    border-color: #62BA8C;
+}
+
+
+.bg-new-cycle .full-body .bills-container .bill {
+    position: relative;
+}
+
+.bg-new-cycle .full-body .bills-container .bill .expense-name {
+    text-align: start;
+}
+
+.bg-new-cycle .full-body .bills-container .bill .expense-value {
+    text-wrap: nowrap;
+    text-align: end;
+}
+
+.bg-new-cycle .full-body .bills-container .trash {
+    width: 30px;
+    height: 30px;
+    background-color: #f06263;
+    border-radius: 100%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-new-cycle .full-body .bills-container .trash img {
+    width: 15px;
+    height: 15px;
+    filter: invert(1);
+}
+
+/* weekly limit */
+.bg-new-cycle .full-body .weekly-limit .limit-value {
+    margin: -40px 0;
+}
+
+.bg-new-cycle .full-body .weekly-limit .limit-value input::-webkit-inner-spin-button,
+.bg-new-cycle .full-body .weekly-limit .limit-value input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.bg-new-cycle .full-body .weekly-limit .limit-value .number-picker {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.bg-new-cycle .full-body .weekly-limit .limit-value .number-picker input {
+    width: 100px;
+    text-align: center;
+    border: none;
+    color: #9B9B9A;
+    font-size: 1.5rem;
+    background: transparent;
+    z-index: 2;
+}
+
+.bg-new-cycle .full-body .weekly-limit .limit-value .number-picker .np-above,
+.bg-new-cycle .full-body .weekly-limit .limit-value .number-picker .np-below {
+    font-size: 1.2rem;
+    color: #9B9B9A;
+    opacity: 0.3;
+    height: 20px;
+    line-height: 20px;
+}
+
+.bg-new-cycle .full-body .weekly-limit .limit-value .number-picker .np-above {
+    margin: 40px 0 5px;
+}
+
+.bg-new-cycle .full-body .weekly-limit .limit-value .number-picker .np-below {
+    margin: 5px 0 40px;
+}
+
+/* END */
+.bg-new-cycle .full-body .body-int .carousel .end {
+    justify-content: center !important;
+    gap: 40px;
+}
+.bg-new-cycle .full-body .end .end-btn {
+    background-color: #62BA8C;
+    padding: 20px 30px;
+    border: none;
+    border-radius: 30px;
+    color: white;
+    cursor: pointer;
+}
