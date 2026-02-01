@@ -499,3 +499,10 @@ header.new-cycle {
     color: white;
     cursor: pointer;
 }
+
+/* new users */
+#set-payday-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}

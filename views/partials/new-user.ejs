@@ -1,0 +1,204 @@
+<div class="bg-new-cycle">
+    <div class="full-body">
+        <div class="new-cycle-title">
+            <h1>Benvenuto</h1>
+            <div class="line"></div>
+        </div>
+        <div class="body-int">
+            <div class="carousel">
+
+                <!-- START: pede a data do payday -->
+                <div class="start">
+                    <h2>Inserisci la data del prossimo payday; useremo questa data per impostare il ciclo iniziale.</h2>
+
+                    <form id="set-payday-form" action="/new-user/set-payday" method="POST">
+                        <label for="paydayDay">Giorno del payday:</label>
+                        <input type="number" id="paydayDay" name="paydayDay" min="1" max="31" required
+                            value="<%= (user && user.payday) ? user.payday : '' %>">
+                        <div class="btn-container">
+                            <button type="submit" class="submit-btn">Salva e continua</button>
+                        </div>
+                    </form>
+
+                </div>
+
+                <!-- SALARIES (igual ao new-cycle) -->
+                <div class="salaries">
+                    <h2>Quali sono le entrate di questo mese?</h2>
+                    <div class="container-new-salary">
+                        <div class="add-salary-new-cycle">
+                            <form class="form-add-salary-new-cycle" action="/new-user/add-salary" method="POST">
+                                <input type="text" name="name" id="name-salary-new-cycle" placeholder="Nome" required>
+                                <input type="number" name="value" id="value-salary-new-cycle" placeholder="Valore (€)"
+                                    step="0.01" required>
+                                <button type="submit" class="submit-new-salary-new-cycle"
+                                    aria-label="Aggiungi salario"></button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="salaries-new-cycle">
+                        <% let incomesTotal=0; %>
+                            <% incomes.forEach(s=> { %>
+                                <% incomesTotal +=parseFloat(s.value || 0); %>
+                                    <div class="new-entry-new-cycle" data-id="<%= s.id %>">
+                                        <div class="income-text">
+                                            <h2 class="expense-name">
+                                                <%= s.name %>
+                                            </h2>
+                                            <h2 class="expense-value">
+                                                <%= parseFloat(s.value).toFixed(2) %> €
+                                            </h2>
+                                        </div>
+                                    </div>
+                                    <div class="line"></div>
+                                    <% }) %>
+                    </div>
+
+                    <div class="total">
+                        <h2>
+                            <%= incomesTotal.toFixed(2) %> €
+                        </h2>
+                    </div>
+
+                    <div class="actions">
+                        <div class="back"></div>
+                        <div class="next"></div>
+                    </div>
+                </div>
+
+                <!-- BILLS (igual ao new-cycle) -->
+                <div class="bills-container">
+                    <h2>Vuoi modificare le spese fisse?</h2>
+
+                    <button class="add-bill-new-cycle"></button>
+                    <div class="container-add-bill hidden">
+                        <div class="container">
+                            <form id="add-bill-form" method="POST" action="/new-user/add-bill" class="form-bills">
+                                <label for="add-name">Nome</label>
+                                <input type="text" name="name" id="add-name" required>
+
+                                <label for="add-value">Valore</label>
+                                <input type="number" name="value" step="0.01" id="add-value" required>
+
+                                <label for="add-day">Giorno di paga</label>
+                                <input type="number" name="day" min="0" max="31" id="add-day" required>
+
+                                <label for="add-tipo">Tipo</label>
+                                <select name="tipo" id="add-tipo" required>
+                                    <option value="automatico">Automatico</option>
+                                    <option value="manuale">Manuale</option>
+                                </select>
+
+                                <div class="btn-container">
+                                    <button type="button"
+                                        onclick="document.querySelector('.container-add-bill').classList.add('hidden')">Annulla</button>
+                                    <button type="submit" class="submit-btn">Aggiungi</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="bills">
+                        <% bills.forEach(b=> { %>
+                            <div class="bill" data-id="<%= b.id %>">
+                                <input type="checkbox" class="checkbox" aria-label="Seleziona spesa">
+                                <div class="container-int">
+                                    <div class="first-part">
+                                        <h2 class="expense-name">
+                                            <%= b.name %>
+                                        </h2>
+                                    </div>
+                                    <div class="second-part">
+                                        <h2 class="expense-value">
+                                            <%= parseFloat(b.value).toFixed(2) %> €
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="line"></div>
+                            <% }) %>
+                    </div>
+
+                    <!-- DELETE BILLS FORM -->
+                    <form action="/new-user/delete-bills" method="POST" id="delete-bills-form">
+                        <input type="hidden" name="ids" id="delete-bills-ids">
+                        <button type="submit" class="trash" aria-label="Elimina spese selezionate">
+                            <img src="/images/trash-can.png" alt="Elimina">
+                        </button>
+                    </form>
+
+                    <script>
+                        document.querySelector(".trash").addEventListener("click", (e) => {
+                            e.preventDefault();
+                            const checked = [...document.querySelectorAll(".bills .bill input.checkbox:checked")]
+                                .map(cb => cb.closest(".bill").dataset.id);
+
+                            if (checked.length === 0) return alert("Seleziona almeno una spesa.");
+
+                            document.getElementById("delete-bills-ids").value = checked.join(",");
+                            document.getElementById("delete-bills-form").submit();
+                        });
+
+                        // Skip payday: go to next carousel page (same behavior as new-cycle)
+                        document.getElementById("skip-payday").addEventListener("click", () => {
+                            // se você tem um controlador do carousel, dispare o evento next
+                            const nextBtn = document.querySelector(".new-cycle-actions .next");
+                            if (nextBtn) nextBtn.click();
+                        });
+                    </script>
+
+                </div>
+
+                <!-- WEEKLY LIMIT (igual ao new-cycle) -->
+                <div class="weekly-limit">
+                    <h2>Questo è il tuo budget settimanale. Vuoi modificarlo?</h2>
+
+                    <div class="limit-value">
+                        <div class="number-picker" aria-hidden="false">
+                            <div class="np-above" aria-hidden="true"></div>
+                            <input type="number" value="<%= Math.round(weeklyValue || 0) %>" id="leftoverInput"
+                                aria-label="Budget settimanale">
+                            <div class="np-below" aria-hidden="true"></div>
+                        </div>
+                    </div>
+
+                    <h2>La differenza andrà nei risparmi.</h2>
+
+                    <div class="actions">
+                        <div class="back"></div>
+                        <div class="next"></div>
+                    </div>
+                </div>
+
+                <div class="end">
+                    <h2>Hai impostato tutto!</h2>
+
+                    <form action="/new-user/confirm" method="POST" id="confirm-cycle-form">
+                        <input type="hidden" name="weeklyOriginal" value="<%= weeklyValue %>">
+                        <input type="hidden" name="weeklyNew" id="weeklyNewInput">
+                        <button type="submit" class="end-btn">Conferma e inizia</button>
+                    </form>
+
+                    <script>
+                        document.querySelector(".end-btn").addEventListener("click", () => {
+                            document.getElementById("weeklyNewInput").value =
+                                document.getElementById("leftoverInput").value;
+                        });
+                    </script>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="new-cycle-actions">
+            <button class="back">
+                <img src="/images/arrow.png" alt="Indietro">
+            </button>
+            <button class="next">
+                <img src="/images/right-arrow.png" alt="Avanti">
+            </button>
+        </div>
+
+    </div>
+</div>
