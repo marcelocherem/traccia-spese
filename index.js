@@ -612,7 +612,7 @@ app.get("/incomes", requireLogin, async (req, res) => {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayISO = today.toLocaleDateString("en-CA"); // yyyy-mm-dd
+    const todayISO = today.toLocaleDateString("en-CA");
     const cycle = await getActiveCycle(username, todayISO);
 
     if (!cycle) {
@@ -662,7 +662,7 @@ app.post("/add-incomes", requireLogin, async (req, res) => {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayISO = today.toLocaleDateString("en-CA"); // yyyy-mm-dd
+    const todayISO = today.toLocaleDateString("en-CA");
     const cycle = await getActiveCycle(username, todayISO);
 
     if (!cycle) {
@@ -1081,14 +1081,12 @@ app.get("/new-cycle", requireLogin, async (req, res) => {
     const username = req.user.username;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayISO = today.toLocaleDateString("en-CA"); // yyyy-mm-dd
+    const todayISO = today.toLocaleDateString("en-CA");
     let page = parseInt(req.query.page || "0", 10);
 
-    // Se já existe ciclo ativo → volta pra home
     const active = await getActiveCycle(username, todayISO);
     if (active) return res.redirect("/");
 
-    // Se leftover já foi usado → nunca voltar para page 0
     const leftoverIncomeRes = await db.query(`
       SELECT id FROM incomes
       WHERE username = $1 AND cycle_id IS NULL AND type = 'leftover'
@@ -1098,7 +1096,6 @@ app.get("/new-cycle", requireLogin, async (req, res) => {
       return res.redirect("/new-cycle?page=1");
     }
 
-    // Último ciclo existente (ciclo anterior)
     const lastCycleRes = await db.query(`
       SELECT id FROM cycles
       WHERE username = $1
@@ -1144,7 +1141,6 @@ app.get("/new-cycle", requireLogin, async (req, res) => {
       leftover = totalIncome - totalBillsOld - totalSavings - totalSpent;
     }
 
-    // Bills globais (modelo)
     const billsRes = await db.query(`
       SELECT id, name, value, day, tipo
       FROM bills
@@ -1154,7 +1150,6 @@ app.get("/new-cycle", requireLogin, async (req, res) => {
 
     const bills = billsRes.rows;
 
-    // Incomes sem cycle_id (novo ciclo)
     let incomes = [];
     if (page >= 1) {
       const incomesRes = await db.query(`
@@ -1167,7 +1162,6 @@ app.get("/new-cycle", requireLogin, async (req, res) => {
       incomes = incomesRes.rows;
     }
 
-    // WEEKLY LIMIT — sempre calculado
     let weeklyValue = 0;
 
     const userRes = await db.query(`
@@ -1209,7 +1203,6 @@ app.get("/new-cycle", requireLogin, async (req, res) => {
       weeklyValue = weeks > 0 ? leftoverNovo / weeks : 0;
     }
 
-    // Se já passou da página 0, leftover antigo não deve mais aparecer
     let weekLeftover = leftover;
     if (page > 0) weekLeftover = 0;
 
@@ -1331,7 +1324,6 @@ app.post("/new-cycle/delete-bills", requireLogin, async (req, res) => {
       WHERE username = $1 AND id = ANY($2)
     `, [username, ids]);
 
-    // Volta para a página 2 do wizard
     res.redirect("/new-cycle?page=2");
 
   } catch (err) {
@@ -1346,23 +1338,19 @@ app.post("/new-cycle/confirm", requireLogin, async (req, res) => {
     const username = req.user.username;
     const { weeklyOriginal, weeklyNew } = req.body;
 
-    // Data de hoje (local, sem timezone)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayISO = today.toLocaleDateString("en-CA"); // yyyy-mm-dd
+    const todayISO = today.toLocaleDateString("en-CA");
 
     const orig = parseFloat(weeklyOriginal) || 0;
     const novo = parseFloat(weeklyNew) || 0;
 
-    // Bloquear aumento — igual new-user
     if (novo > orig) {
       return res.redirect(`/new-cycle?page=2&error=weeklyLimit`);
     }
 
-    // Criar novo ciclo — igual new-user
     const cycleId = await createCycleFromPayday(username, todayISO);
 
-    // Buscar número de semanas do ciclo recém-criado
     const weeksRes = await db.query(`
       SELECT weeks_count
       FROM cycles
@@ -1371,13 +1359,10 @@ app.post("/new-cycle/confirm", requireLogin, async (req, res) => {
 
     const weeks = weeksRes.rows[0].weeks_count;
 
-    // Diferença semanal
     const weeklyDiff = orig - novo;
 
-    // Diferença total — igual new-user
     const totalDiff = weeklyDiff * weeks;
 
-    // Se houver diferença, mandar para savings — igual new-user
     if (totalDiff > 0) {
       await db.query(`
         INSERT INTO savings (username, cycle_id, amount, source, created_at)
@@ -1385,24 +1370,26 @@ app.post("/new-cycle/confirm", requireLogin, async (req, res) => {
       `, [username, cycleId, totalDiff]);
     }
 
-    // Amarrar incomes ao ciclo — igual new-user
     await db.query(`
       UPDATE incomes
       SET cycle_id = $1
       WHERE username = $2 AND cycle_id IS NULL
     `, [cycleId, username]);
 
-    // Bills NÃO têm cycle_id — não mexe
+    await db.query(`
+      UPDATE bills
+      SET pago = FALSE
+      WHERE username = $1
+    `, [username]);
 
-    // Finalizar
     res.redirect("/");
+
 
   } catch (err) {
     console.error("confirm cycle error:", err);
     res.redirect("/new-cycle?page=3");
   }
 });
-
 
 // b
 
@@ -1493,7 +1480,6 @@ app.post("/new-user/add-salary", requireLogin, async (req, res) => {
   }
 });
 
-// SET PAYDAY
 // NEW USER — SAVE PAYDAY
 app.post("/new-user/set-payday", requireLogin, async (req, res) => {
   try {
@@ -1565,7 +1551,7 @@ app.post("/new-user/leftover-action", requireLogin, async (req, res) => {
     const { action, amount } = req.body;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayISO = today.toLocaleDateString("en-CA"); // yyyy-mm-dd
+    const todayISO = today.toLocaleDateString("en-CA");
     const cycleId = await getOrCreateCycle(username, todayISO);
     const val = parseFloat(amount) || 0;
 
@@ -1594,7 +1580,6 @@ app.post("/new-user/confirm", requireLogin, async (req, res) => {
     const username = req.user.username;
     const { weeklyOriginal, weeklyNew } = req.body;
 
-    // search payday
     const userRes = await db.query(`
       SELECT payday FROM users WHERE username = $1
     `, [username]);
@@ -1602,7 +1587,6 @@ app.post("/new-user/confirm", requireLogin, async (req, res) => {
     const payday = userRes.rows[0]?.payday;
     if (!payday) return res.redirect("/new-user?page=0");
 
-    // cycle dates based on payday
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -1619,10 +1603,8 @@ app.post("/new-user/confirm", requireLogin, async (req, res) => {
     const startISO = startDate.toLocaleDateString("en-CA");
     const endISO = endDate.toLocaleDateString("en-CA");
 
-    // real weeks between dates
     const weeks = getItalianWeeks(startDate, endDate);
 
-    // Create cycle
     const cycleRes = await db.query(`
       INSERT INTO cycles (username, start_date, end_date, weeks_count)
       VALUES ($1, $2, $3, $4)
@@ -1631,33 +1613,27 @@ app.post("/new-user/confirm", requireLogin, async (req, res) => {
 
     const cycleId = cycleRes.rows[0].id;
 
-    // tie incomes to cycle
     await db.query(`
       UPDATE incomes
       SET cycle_id = $1
       WHERE username = $2 AND cycle_id IS NULL
     `, [cycleId, username]);
 
-    // tie bills to cycle
     await db.query(`
       UPDATE bills
       SET cycle_id = $1
       WHERE username = $2 AND cycle_id IS NULL
     `, [cycleId, username]);
 
-    // Weekly original and new
     const orig = parseFloat(weeklyOriginal) || 0;
     const novo = parseFloat(weeklyNew) || 0;
 
-    // block if user tries to increase weekly limit in the wizard
     if (novo > orig) {
       return res.redirect("/new-user?page=3");
     }
 
-    // weekly iference
     const weeklyDiff = orig - novo;
 
-    // total diference
     const totalDiff = weeklyDiff * weeks;
 
     if (totalDiff > 0) {

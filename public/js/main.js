@@ -139,7 +139,6 @@ function toggleLogout() {
   const btn = document.querySelector(".settings-btn");
   if (btn) btn.classList.toggle("active");
 }
-
 // NAVIGATION LOADER
 document.querySelectorAll('a[href], button[data-navigate]').forEach(el => {
   el.addEventListener('click', (e) => {
@@ -155,6 +154,17 @@ document.querySelectorAll('a[href], button[data-navigate]').forEach(el => {
     }
   });
 });
+
+document.querySelectorAll("form").forEach(form => {
+  form.addEventListener("submit", () => {
+    const loader = document.querySelector(".loader");
+    if (loader) loader.classList.add("visible");
+
+    const btn = form.querySelector("button[type='submit']");
+    if (btn) btn.disabled = true;
+  });
+});
+
 
 // BILLS: PAID / UNPAID TOGGLE
 document.querySelectorAll(".bill-option").forEach(option => {
