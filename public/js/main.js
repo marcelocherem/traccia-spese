@@ -139,7 +139,13 @@ function toggleLogout() {
   const btn = document.querySelector(".settings-btn");
   if (btn) btn.classList.toggle("active");
 }
+
 // NAVIGATION LOADER
+window.addEventListener("pageshow", () => {
+  const loader = document.querySelector(".loader");
+  if (loader) loader.classList.remove("visible");
+});
+
 document.querySelectorAll('a[href], button[data-navigate]').forEach(el => {
   el.addEventListener('click', (e) => {
     const loader = document.querySelector('.loader');
