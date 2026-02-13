@@ -7,14 +7,15 @@
         <div class="body-int">
             <div class="carousel">
 
-                <!-- START: pede a data do payday -->
+                <!-- START -->
                 <div class="start">
-                    <h2>Inserisci la data del prossimo payday; useremo questa data per impostare il ciclo iniziale.</h2>
 
                     <form id="set-payday-form" action="/new-user/set-payday" method="POST">
+                        <h2>Inserisci la data del prossimo payday; useremo questa data per impostare il ciclo iniziale.
+                        </h2>
                         <label for="paydayDay">Giorno del payday:</label>
                         <input type="number" id="paydayDay" name="paydayDay" min="1" max="31" required
-                            value="<%= (user && user.payday) ? user.payday : '' %>">
+                            value="<%= (user && user.payday) ? user.payday : '' %>" placeholder="1-31">
                         <div class="btn-container">
                             <button type="submit" class="submit-btn">Salva e continua</button>
                         </div>
@@ -22,7 +23,7 @@
 
                 </div>
 
-                <!-- SALARIES (igual ao new-cycle) -->
+                <!-- SALARIES -->
                 <div class="salaries">
                     <h2>Quali sono le entrate di questo mese?</h2>
                     <div class="container-new-salary">
@@ -67,9 +68,9 @@
                     </div>
                 </div>
 
-                <!-- BILLS (igual ao new-cycle) -->
+                <!-- BILLS -->
                 <div class="bills-container">
-                    <h2>Vuoi modificare le spese fisse?</h2>
+                    <h2>Vuoi aggiungere le spese fisse?</h2>
 
                     <button class="add-bill-new-cycle"></button>
                     <div class="container-add-bill hidden">
@@ -121,7 +122,7 @@
                     </div>
 
                     <!-- DELETE BILLS FORM -->
-                    <form action="/new-user/delete-bills" method="POST" id="delete-bills-form">
+                    <form action="/new-user/delete-bills?page=2" method="POST" id="delete-bills-form">
                         <input type="hidden" name="ids" id="delete-bills-ids">
                         <button type="submit" class="trash" aria-label="Elimina spese selezionate">
                             <img src="/images/trash-can.png" alt="Elimina">
@@ -139,10 +140,7 @@
                             document.getElementById("delete-bills-ids").value = checked.join(",");
                             document.getElementById("delete-bills-form").submit();
                         });
-
-                        // Skip payday: go to next carousel page (same behavior as new-cycle)
                         document.getElementById("skip-payday").addEventListener("click", () => {
-                            // se você tem um controlador do carousel, dispare o evento next
                             const nextBtn = document.querySelector(".new-cycle-actions .next");
                             if (nextBtn) nextBtn.click();
                         });
@@ -150,7 +148,6 @@
 
                 </div>
 
-                <!-- WEEKLY LIMIT (igual ao new-cycle) -->
                 <div class="weekly-limit">
                     <h2>Questo è il tuo budget settimanale. Vuoi modificarlo?</h2>
 

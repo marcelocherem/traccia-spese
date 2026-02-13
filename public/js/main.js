@@ -65,11 +65,9 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("edit-name").value = button.dataset.name || "";
         document.getElementById("edit-value").value = button.dataset.value || "";
 
-        // date must be yyyy-mm-dd
         const dateField = document.getElementById("edit-date");
         if (dateField) dateField.value = button.dataset.date || "";
 
-        // tipo e stato
         const typeField = document.getElementById("edit-type");
         if (typeField) typeField.value = button.dataset.type || "";
       } else {
@@ -136,16 +134,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// config
+// CONFIG / SETTINGS BUTTON
 function toggleLogout() {
   const btn = document.querySelector(".settings-btn");
-  btn.classList.toggle("active");
+  if (btn) btn.classList.toggle("active");
 }
 
-// load new page
+// NAVIGATION LOADER
 document.querySelectorAll('a[href], button[data-navigate]').forEach(el => {
   el.addEventListener('click', (e) => {
-    document.querySelector('.loader').classList.add('visible');
+    const loader = document.querySelector('.loader');
+    if (loader) loader.classList.add('visible');
 
     const url = el.getAttribute('href');
     if (url) {
@@ -157,16 +156,14 @@ document.querySelectorAll('a[href], button[data-navigate]').forEach(el => {
   });
 });
 
-// pages paid and unpaid from bills
+// BILLS: PAID / UNPAID TOGGLE
 document.querySelectorAll(".bill-option").forEach(option => {
   option.addEventListener("click", () => {
-    // remove active class
     document.querySelectorAll(".bill-option").forEach(o => o.classList.remove("active"));
     option.classList.add("active");
 
     const target = option.dataset.target;
 
-    // show only the selected entries
     document.querySelectorAll(".entry-bills, .separator").forEach(el => {
       el.classList.add("hidden");
       if (el.classList.contains(target)) {
@@ -176,13 +173,10 @@ document.querySelectorAll(".bill-option").forEach(option => {
   });
 });
 
-// paid is default
 const defaultOption = document.querySelector(".bill-option[data-target='paid']");
 if (defaultOption) defaultOption.click();
 
-
-
-// settings buttons
+// SETTINGS PAGE TOGGLE (payday / history)
 document.addEventListener("DOMContentLoaded", () => {
   const btnPayday = document.querySelector(".container-payday");
   const btnHistory = document.querySelector(".container-history");
@@ -190,14 +184,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const paydaySpace = document.querySelector(".payday-space");
   const historySpace = document.querySelector(".history");
 
-  // clean active
+  if (!btnPayday || !btnHistory || !paydaySpace || !historySpace) return;
+
   function clearActive() {
     document.querySelectorAll(".settings-btn").forEach(btn => {
       btn.classList.remove("active");
     });
   }
 
-  // PAYDAY
   btnPayday.addEventListener("click", () => {
     clearActive();
     btnPayday.classList.add("active");
@@ -206,7 +200,6 @@ document.addEventListener("DOMContentLoaded", () => {
     historySpace.classList.remove("show");
   });
 
-  // HISTORY
   btnHistory.addEventListener("click", () => {
     clearActive();
     btnHistory.classList.add("active");
@@ -216,8 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-
-// bell
+// BELL POPUP + MARK PAID
 (function setupBellAlert() {
   const bell = document.getElementById("bell-alert");
   const popup = document.getElementById("bell-popup");
@@ -243,78 +235,27 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".mark-paid").forEach(btn => {
     btn.addEventListener("click", async () => {
       const id = btn.dataset.id;
-      await fetch(`/bills/${id}/mark-paid`, { method: "POST" });
-      window.location.reload();
+      try {
+        await fetch(`/bills/${id}/mark-paid`, { method: "POST" });
+        window.location.reload();
+      } catch (err) {
+        console.error("mark-paid error", err);
+        alert("Errore di rete");
+      }
     });
   });
 })();
 
-// settings icon toggle
-document.getElementById("settingsBtn").addEventListener("click", function (e) {
-  this.classList.toggle("toggled");
-  toggleLogout();
-});
-
-
-// weekly limit number picker
-const picker = document.querySelector(".number-picker");
-const input = document.getElementById("leftoverInput");
-const above = document.querySelector(".np-above");
-const below = document.querySelector(".np-below");
-
-function updateSideNumbers() {
-  const value = parseInt(input.value) || 0;
-  above.textContent = value - 1;
-  below.textContent = value + 1;
+// SETTINGS ICON TOGGLE
+const settingsBtn = document.getElementById("settingsBtn");
+if (settingsBtn) {
+  settingsBtn.addEventListener("click", function (e) {
+    this.classList.toggle("toggled");
+    toggleLogout();
+  });
 }
 
-updateSideNumbers();
-
-let startY = null;
-let startValue = null;
-
-function startDrag(e) {
-  startY = e.touches ? e.touches[0].clientY : e.clientY;
-  startValue = parseFloat(input.value);
-}
-
-function duringDrag(e) {
-  if (startY === null) return;
-
-  const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-  const diff = startY - currentY;
-
-  const step = Math.round(diff / 10);
-
-  input.value = Math.max(0, startValue + step);
-
-  updateSideNumbers();
-}
-
-function endDrag() {
-  startY = null;
-  startValue = null;
-}
-
-picker.addEventListener("mousedown", startDrag);
-picker.addEventListener("mousemove", duringDrag);
-picker.addEventListener("mouseup", endDrag);
-picker.addEventListener("mouseleave", endDrag);
-picker.addEventListener("touchstart", startDrag);
-picker.addEventListener("touchmove", duringDrag);
-picker.addEventListener("touchend", endDrag);
-input.addEventListener("input", updateSideNumbers);
-
-// toggle add salary form
-const container = document.querySelector(".container-new-salary");
-
-container.addEventListener("click", () => {
-  container.classList.add("when-open");
-});
-
-// next and back buttons new cycle
-// public/js/new-cycle.js
-
+// NEW-CYCLE / NEW-USER: CAROUSEL + NUMBER PICKER + ADD SALARY
 document.addEventListener("DOMContentLoaded", () => {
   // Carousel
   const carousel = document.querySelector('.bg-new-cycle .body-int .carousel');
@@ -327,9 +268,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     let index = parseInt(params.get("page")) || 0;
 
-
     function updateTitle() {
-      if (index === screens.length - 1) {
+      if (index === 0 && document.querySelector(".start")) {
+        titleEl.textContent = "Benvenuto";
+      } else if (index === screens.length - 1) {
         titleEl.textContent = "Ci siamo";
       } else {
         titleEl.textContent = "Oggi è il payday";
@@ -393,6 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
         carousel.style.transform = `translateX(calc(-${index * 100}% + ${deltaX}px))`;
       }
     }
+
     function onTouchEnd() {
       if (!isDragging) return;
       isDragging = false;
@@ -409,13 +352,14 @@ document.addEventListener("DOMContentLoaded", () => {
     carousel.addEventListener("touchend", onTouchEnd);
   }
 
-  // scroll number picker
+  // scroll number picker (new-cycle & new-user)
   const picker = document.querySelector(".number-picker");
   const input = document.getElementById("leftoverInput");
   const above = document.querySelector(".np-above");
   const below = document.querySelector(".np-below");
 
   function updateSideNumbers() {
+    if (!input || !above || !below) return;
     const value = parseInt(input.value) || 0;
     above.textContent = value - 1;
     below.textContent = value + 1;
@@ -428,12 +372,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let startValue = null;
 
   function startDrag(e) {
+    if (!input) return;
     startY = e.touches ? e.touches[0].clientY : e.clientY;
     startValue = parseFloat(input.value) || 0;
   }
 
   function duringDrag(e) {
-    if (startY === null) return;
+    if (startY === null || !input) return;
     const currentY = e.touches ? e.touches[0].clientY : e.clientY;
     const diff = startY - currentY;
     const step = Math.round(diff / 10);
@@ -456,7 +401,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (input) input.addEventListener("input", updateSideNumbers);
 
-  // TOGGLE add salary form
+  // TOGGLE add salary form (new-cycle & new-user)
   const containerNewSalary = document.querySelector(".container-new-salary");
   const addSalaryBtn = document.querySelector(".add-salary-new-cycle");
   if (addSalaryBtn && containerNewSalary) {
@@ -465,144 +410,35 @@ document.addEventListener("DOMContentLoaded", () => {
       containerNewSalary.classList.add("when-open");
     });
   }
+});
+// TOGGLE ADD-BILL FORM (new-cycle & new-user)
+document.addEventListener("DOMContentLoaded", () => {
+  const addBillBtn = document.querySelector(".add-bill-new-cycle");
+  const addBillModal = document.querySelector(".container-add-bill");
 
-  // REST
-  const forSavingsBtn = document.querySelector(".for-savings");
-  const forUseBtn = document.querySelector(".for-use");
-  const restSpan = document.querySelector(".rest h2 span");
+  if (addBillBtn && addBillModal) {
+    addBillBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      addBillModal.classList.remove("hidden");
+    });
 
-  function parseAmountFromSpan(spanEl) {
-    if (!spanEl) return 0;
-    const raw = spanEl.textContent || "";
-    const num = raw.replace(/[^\d\-,.]/g, "").replace(",", ".");
-    return Math.abs(parseFloat(num) || 0);
-  }
-
-  async function sendLeftover(action) {
-    const amount = parseAmountFromSpan(restSpan);
-    try {
-      const res = await fetch("/new-cycle/leftover-action", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: action === 'use' ? 'use' : 'savings', amount })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        const restEl = document.querySelector(".rest");
-        if (restEl) {
-          restEl.style.display = "none";
-          const msg = document.createElement("p");
-          msg.className = "rest-feedback";
-          msg.textContent = action === 'use' ? "Valore aggiunto come entrata." : "Valore aggiunto ai risparmi.";
-          restEl.parentElement.prepend(msg);
-        }
-      } else {
-        alert("Errore: " + (data.message || "Operazione fallita"));
-      }
-    } catch (err) {
-      console.error("sendLeftover error", err);
-      alert("Errore di rete");
-    }
-  }
-
-  if (forUseBtn) forUseBtn.addEventListener("click", () => sendLeftover("use"));
-  if (forSavingsBtn) forSavingsBtn.addEventListener("click", () => sendLeftover("savings"));
-
-  // ADD SALARY
-  const addSalaryForm = document.querySelector(".form-add-salary-new-cycle");
-
-  async function updateSalariesTotal() {
-    const vals = Array.from(document.querySelectorAll(".salaries-new-cycle .expense-value"))
-      .map(el => parseFloat(el.textContent.replace(/[^\d\-,.]/g, '').replace(',', '.')) || 0);
-
-    const total = vals.reduce((a, b) => a + b, 0);
-    const totalEl = document.querySelector(".total h2");
-
-    if (totalEl) totalEl.textContent = total.toFixed(2) + " €";
-  }
-
-  updateSalariesTotal();
-
-  // DELETE BILLS
-  const trashBtn = document.querySelector(".bills-container .trash");
-  if (trashBtn) {
-    trashBtn.addEventListener("click", async () => {
-      const checked = Array.from(document.querySelectorAll(".bills .bill input.checkbox:checked"))
-        .map(cb => {
-          const billEl = cb.closest(".bill");
-          return billEl ? parseInt(billEl.dataset.id) : null;
-        })
-        .filter(Boolean);
-
-      if (checked.length === 0) return alert("Seleziona almeno una spesa.");
-      if (!confirm(`Sei sicuro di eliminare ${checked.length} spesa/e?`)) return;
-
-      try {
-        const res = await fetch("/new-cycle/delete-bills", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ids: checked })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          checked.forEach(id => {
-            const el = document.querySelector(`.bill[data-id="${id}"]`);
-            if (el) el.remove();
-          });
-        } else {
-          alert("Errore eliminazione");
-        }
-      } catch (err) {
-        console.error("delete-bills error", err);
-        alert("Errore di rete");
+    // close when clicking outside
+    document.addEventListener("click", (ev) => {
+      const clickedInside = addBillModal.contains(ev.target) || addBillBtn.contains(ev.target);
+      if (!clickedInside && !addBillModal.classList.contains("hidden")) {
+        addBillModal.classList.add("hidden");
       }
     });
-  }
-
-  // CONFIRM CYCLE (final button)
-  const endBtn = document.querySelector(".end-btn");
-  if (endBtn) {
-    endBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      const weeklyOriginalEl = document.querySelector("#weekly-original");
-      const weeklyOriginal = weeklyOriginalEl
-        ? parseFloat(weeklyOriginalEl.dataset.value || 0)
-        : 0;
-
-      const weeklyNew = parseFloat(document.getElementById("leftoverInput").value || 0);
-
-      try {
-        const form = new FormData();
-        form.append("weeklyOriginal", weeklyOriginal);
-        form.append("weeklyNew", weeklyNew);
-
-        const res = await fetch("/new-cycle/confirm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ weeklyOriginal, weeklyNew })
-        });
-        if (res.redirected) {
-          window.location.href = res.url;
-        } else {
-          window.location.href = "/";
-        }
-      } catch (err) {
-        console.error("confirm error", err);
-        alert("Errore di rete");
-      }
-    });
-  }
-  // security helper
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
   }
 });
 
-const addBillBtn = document.querySelector(".add-bill-new-cycle");
-const addBillModal = document.querySelector(".container-add-bill");
-
-if (addBillBtn && addBillModal) {
-  addBillBtn.addEventListener("click", () => {
-    addBillModal.classList.remove("hidden");
-  });
+// SECURITY HELPER
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[m]));
 }
